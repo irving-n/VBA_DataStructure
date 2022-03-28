@@ -70,9 +70,11 @@ End Property
 
 'METHODS
 Public Function Apply(iterable_arr As Variant, funcName As String, elem_arg_idx_pos As Integer, ParamArray args() As Variant) As Variant
+'Note - this function is experimental
     Dim ub As Integer, i As Integer, j As Integer, arg_count As Integer, total_args_count As Integer, xfer_ceiling As Integer
-    Dim rtn As Variant, args_xfer As Variant
-    Dim compile_col As Collection
+    Dim funcString As String
+    Dim rtn As Variant, args_xfer As Variant, val As Variant
+    Dim compile_col As Collection, funcPart_col As Collection
     
     If Not IsArray(iterable_arr) Then
         Apply = Empty
@@ -81,11 +83,12 @@ Public Function Apply(iterable_arr As Variant, funcName As String, elem_arg_idx_
     
     If UBound(args) >= 0 Then
         xfer_ceiling = UBound(args) + 1
-        ReDim args_xfer(5)
+        total_args_count = 1 + UBound(args) + 1
+        ReDim args_xfer(total_args_count)
         args_xfer(elem_arg_idx_pos) = Empty 'This will be replaced in a loop
         j = 0 'position of the input arguments - increment by 1 each time one of them is assigned, pseudo-stack
-        total_args_count = 1 + UBound(args)
-        For i = 0 To (total_args_count - 1)
+'        total_args_count = 1 + UBound(args) + 1
+        For i = 0 To (total_args_count)
             If j <= xfer_ceiling Then
                 If i <> elem_arg_idx_pos Then
                     On Error Resume Next
@@ -93,8 +96,8 @@ Public Function Apply(iterable_arr As Variant, funcName As String, elem_arg_idx_
                     If Err.number <> 0 Then
                         Err.Clear
                         Set args_xfer(i) = args(j)
-                        j = j + 1
                     End If
+                    j = j + 1
                     On Error GoTo 0
                 End If
               Else
@@ -102,7 +105,7 @@ Public Function Apply(iterable_arr As Variant, funcName As String, elem_arg_idx_
             End If
         Next i
         
-        ReDim args_xfer(1 + UBound(args))
+'        ReDim args_xfer(1 + UBound(args))
       Else
         ReDim args_xfer(0)
         total_args_count = 1
@@ -114,7 +117,7 @@ Public Function Apply(iterable_arr As Variant, funcName As String, elem_arg_idx_
     ReDim rtn(ub)
     
     arg_count = UBound(args)
-    
+    Set compile_col = New Collection
     For i = 0 To ub
         On Error Resume Next
         args_xfer(elem_arg_idx_pos) = iterable_arr(i)
@@ -124,7 +127,8 @@ Public Function Apply(iterable_arr As Variant, funcName As String, elem_arg_idx_
         End If
         On Error GoTo 0
         
-        Select Case total_args_count ' warning - ugly; it needs to be like this because the arguments supplied can't be filled with a default Missing reference
+        On Error Resume Next
+        Select Case total_args_count  ' warning - ugly; it needs to be like this because the arguments supplied can't be filled with a default Missing reference
             Case 1: compile_col.Add ITEM:=Application.run(funcName, args_xfer(0))
             Case 2: compile_col.Add ITEM:=Application.run(funcName, args_xfer(0), args_xfer(1))
             Case 3: compile_col.Add ITEM:=Application.run(funcName, args_xfer(0), args_xfer(1), args_xfer(2))
@@ -133,8 +137,26 @@ Public Function Apply(iterable_arr As Variant, funcName As String, elem_arg_idx_
             Case 6: compile_col.Add ITEM:=Application.run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3), args_xfer(4), args_xfer(5))
             Case Else: Debug.Print "Please edit code to add more arguments, follow the same pattern and it should work."
         End Select
-        rtn(i) = Application.run(funcName, args(0))
+        If Err.number <> 0 Then
+            funcString = funcName & "("
+            Set funcPart_col = New Collection
+            For Each val In args_xfer
+                If TypeName(val) = "String" Then
+                    funcPart_col.Add "'" & val & "'"
+                  ElseIf IsObject(val) Then
+                    'uh oh
+                  Else
+                    If Not IsEmpty(val) Then funcPart_col.Add val
+                End If
+            Next val
+            funcString = funcString & Join(CollectionToArray(funcPart_col), ", ") & ")"
+            compile_col.Add ITEM:=Eval(funcString)
+            Err.Clear
+        End If
+        On Error GoTo 0
+'        rtn(i) = Application.run(funcName, args(0))
     Next i
+    Apply = CollectionToArray(compile_col)
 End Function
 
 
@@ -290,12 +312,91 @@ Exists_clean_up:
 End Function
 
 
-Public Function Enumerate(iterable As Variant, Start As Variant, step As Variant)
+Public Function Enumerate(enumerable As Variant, Optional ByVal starting_idx As Variant, Optional ByVal increment As Variant) As Variant
+'I.N. 2/23/22
+    'Enumerable types: Array, Collection, Dictionary
+    'P/N: Drops keys with dictionaries & collections; adds only the items
 
+On Error GoTo enumerate_clean_up
+
+    Dim typed_name As String
+    Dim val As Variant, i As Integer
+    Dim tmp_col As Collection
+    Dim rtn As Variant
+
+    Set tmp_col = New Collection
+
+    If IsMissing(starting_idx) Then starting_idx = 0
+    i = starting_idx
+    typed_name = TypeName(enumerable)
+
+    If Not isIterable(typed_name, True) Then GoTo enumerate_clean_up
+    
+    Select Case typed_name
+        Case "Variant()", "String()", "Integer()", "Double()", _
+                "Single()", "Byte()", "Long()", "Collection":
+            For Each val In enumerable
+                tmp_col.Add ITEM:=Array(i, val)
+                i = i + 1
+            Next val
+        Case "Dictionary":
+            For Each val In enumerable.Items
+                tmp_col.Add ITEM:=Array(i, val)
+                i = i + 1
+            Next val
+        Case Else:
+            'incompatible
+    End Select
+
+    rtn = CollectionToArray(tmp_col)
+
+enumerate_clean_up:
+    If Err.number <> 0 Then
+        Debug.Print "Error [" & Err.number & "]: " & Err.description
+        Debug.Print "   Context: " & "Function [enumerate] "
+        Err.Clear
+        rtn = Array()
+    End If
+
+    Set tmp_col = Nothing
+    Enumerate = rtn
+    
 End Function
 
 
-Public Function Filter(iterable As Variant, filter_method As String) As Variant
+Public Function Filter(iterable As Variant, ByVal operator_expression As String, compare_against As Variant, ParamArray other_args() As Variant) As Variant
+On Error GoTo Filter_clean_up
+    Dim operand_isIterable As Boolean
+    
+    If Not isIterable(iterable, accept_typename:=False) Then GoTo Filter_clean_up
+    operand_isIterable = isIterable(compare_against)
+    
+    operator_expression = Trim(operator_expression)
+    
+    Select Case operator_expression
+        Case "="
+            
+        Case "<>"
+        Case "is", "Is", "IS" 'Objects only
+        
+        Case "is not", "Is Not", "IS NOT"
+        Case ">"
+        Case ">="
+        Case "<"
+        Case "<="
+        Case "like", "Like", "LIKE"
+        Case "not like", "Not Like", "NOT LIKE"
+        Case "like[or]", "Like[Or]", "LIKE[OR]"
+        Case "like[and]", "Like[And]", "LIKE[AND]"
+        Case "like[xor]", "Like[Xor]", "LIKE[XOR]"
+        Case "like[xand]", "Like[Xand]", "LIKE[XAND]"
+        Case "in", "In", "IN"
+        Case "not in", "Not In", "NOT IN"
+        Case "out", "Out", "OUT"
+        Case Else
+    End Select
+    
+Filter_clean_up:
 
 End Function
 
@@ -407,6 +508,13 @@ Public Function Merge(ParamArray iterables() As Variant) As Variant
 
 End Function
 
+Public Function Minimum(iterable As Variant) As Variant
+
+End Function
+
+Public Function Maximum(iterable As Variant) As Variant
+
+End Function
 
 Public Function Remove(iterable As Variant, Optional ByVal Index As Integer = 0) As Variant
     Dim col As Collection
@@ -741,6 +849,62 @@ On Error GoTo 0
     zipArray_ = rtn
 End Function
 
+Private Function Resolve(left_side As Variant, operator As String, right_side As Variant) As Boolean
+On Error GoTo Resolve_clean_up
+    Dim lowercase_operator As String, mini_ As Variant, maxi_ As Variant
+    lowercase_operator = LCase(operator)
+    Dim rtn As Boolean
+    
+    rtn = False
+    
+    Select Case lowercase_operator
+        Case "="
+            rtn = (left_side = right_side)
+        Case "<>"
+            rtn = (left_side <> right_side)
+        Case "is", "Is", "IS" 'Objects only
+            If IsObject(left_side) And IsObject(right_side) Then
+                rtn = (left_side Is right_side)
+            End If
+        Case "is not"
+            If IsObject(left_side) And IsObject(right_side) Then
+                rtn = (left_side Is Not right_side)
+            End If
+        Case ">"
+            If IsNumeric(left_side) And IsNumeric(right_side) Then
+                rtn = (left_side > right_side)
+            End If
+        Case ">="
+            If IsNumeric(left_side) And IsNumeric(right_side) Then
+                rtn = (left_side >= right_side)
+            End If
+        Case "<"
+            If IsNumeric(left_side) And IsNumeric(right_side) Then
+                rtn = (left_side < right_side)
+            End If
+        Case "<="
+            If IsNumeric(left_side) And IsNumeric(right_side) Then
+                rtn = (left_side <= right_side)
+            End If
+        Case "like"
+            rtn = (CStr(left_side) Like ("*" & CStr(right_side) & "*"))
+        Case "not like"
+            rtn = (Not (CStr(left_side) Like ("*" & CStr(right_side) & "*")))
+        Case "between"
+            If Not IsArray(right_side) Then GoTo Resolve_clean_up
+            If UBound(right_side) <> 1 Then GoTo Resolve_clean_up
+            rtn = ((left_side >= Minimum(right_side)) And (left_side <= Maximum(right_side)))
+        Case "outside"
+            If Not IsArray(right_side) Then GoTo Resolve_clean_up
+            If UBound(right_side) <> 1 Then GoTo Resolve_clean_up
+            rtn = ((left_side < Minimum(right_side)) Or (left_side > Maximum(right_side)))
+        Case Else
+    End Select
+Resolve_clean_up:
+
+Resolve = rtn
+End Function
+
 
 Private Function hasUniformComposition(arr As Variant) As Boolean
     Dim rtn As Boolean
@@ -761,3 +925,5 @@ Private Function hasUniformComposition(arr As Variant) As Boolean
     End If
     hasUniformComposition = rtn
 End Function
+
+
