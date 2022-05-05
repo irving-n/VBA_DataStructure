@@ -10,7 +10,7 @@ Attribute VB_Exposed = False
 Option Explicit
 'TERMS:
 '
-'   Iterable: A value-variable or object-variable which holds a set of other values/objects
+'   DataStructure: A value-variable or object-variable which holds a set of other values/objects
 
 Private Type tDataStructureStringSettings
     InputDelimiter As String
@@ -78,7 +78,7 @@ Public Function Append(ByRef body As Variant, ByRef appendix As Variant) As Vari
     
 On Error GoTo Append_clean_up
 
-    If isIterable(body) Then
+    If isDataStructure(body) Then
         output_type = TypeName(body)
         Select Case output_type
             Case "Dictionary"
@@ -125,14 +125,14 @@ Append_clean_up:
 End Function
 
 
-Public Function Apply(iterable_arr As Variant, funcName As String, elem_arg_idx_pos As Integer, ParamArray args() As Variant) As Variant
+Public Function Apply(DataStructure_arr As Variant, funcName As String, elem_arg_idx_pos As Integer, ParamArray args() As Variant) As Variant
 'Note - this function is experimental
     Dim ub As Integer, i As Integer, j As Integer, arg_count As Integer, total_args_count As Integer, xfer_ceiling As Integer
     Dim funcString As String
     Dim rtn As Variant, args_xfer As Variant, val As Variant
     Dim compile_col As Collection, funcPart_col As Collection
     
-    If Not IsArray(iterable_arr) Then
+    If Not IsArray(DataStructure_arr) Then
         Apply = Empty
         Exit Function
     End If
@@ -173,17 +173,17 @@ Public Function Apply(iterable_arr As Variant, funcName As String, elem_arg_idx_
     
 '    For i = 0 To 5 'can always add more if needed
     
-    ub = UBound(iterable_arr)
+    ub = UBound(DataStructure_arr)
     ReDim rtn(ub)
     
     arg_count = UBound(args)
     Set compile_col = New Collection
     For i = 0 To ub
         On Error Resume Next
-        args_xfer(elem_arg_idx_pos) = iterable_arr(i)
+        args_xfer(elem_arg_idx_pos) = DataStructure_arr(i)
         If Err.Number <> 0 Then
             Err.Clear
-            Set args_xfer(elem_arg_idx_pos) = iterable_arr(i)
+            Set args_xfer(elem_arg_idx_pos) = DataStructure_arr(i)
         End If
         On Error GoTo 0
         
@@ -238,24 +238,24 @@ Public Function CharacterArray(ByVal text As String) As Variant
 End Function
 
 
-Public Function Convert(iterable As Variant, Optional ByVal OutputType As String, Optional ConversionOptions As Variant) As Variant
+Public Function Convert(DataStructure As Variant, Optional ByVal OutputType As String, Optional ConversionOptions As Variant) As Variant
     Dim typeNm As String
     Dim tmpArr As Variant 'temporary array
     Dim rtn As Variant
     Dim col As Collection
     
-    typeNm = TypeName(iterable)
-    If Not isIterable(typeNm, True) Then Set Convert = Nothing: Exit Function
-    If Not isIterable(OutputType, True) Then Set Convert = Nothing: Exit Function
+    typeNm = TypeName(DataStructure)
+    If Not isDataStructure(typeNm, True) Then Set Convert = Nothing: Exit Function
+    If Not isDataStructure(OutputType, True) Then Set Convert = Nothing: Exit Function
     
     Select Case typeNm
         Case "Dictionary"
-            tmpArr = Me.Zip(iterable)
+            tmpArr = Me.Zip(DataStructure)
         Case "Collection"
-            Set col = iterable
+            Set col = DataStructure
             tmpArr = CollectionToArray(col)
         Case Else 'Some form of array
-            tmpArr = iterable
+            tmpArr = DataStructure
     End Select
     
     If TypeName(tmpArr) = OutputType Then 'no conversion necessary
@@ -308,22 +308,22 @@ Convert_clean_up:
 End Function
 
 
-Public Function Copy(iterable As Variant, Optional ByVal failOnNestedObjects As Boolean = False) As Variant
+Public Function Copy(DataStructure As Variant, Optional ByVal failOnNestedObjects As Boolean = False) As Variant
     'Considering renaming or having aliases for this method: Clone, Duplicate - might better convey the doubling of memory behind the scenes
     '
     'Creates and returns a new copy without references to original
-    'Will not handle nested objects for now; possible to handle nested iterables recursively in the future
+    'Will not handle nested objects for now; possible to handle nested DataStructures recursively in the future
     Dim rtn As Variant
     Dim thing As Variant, comp As Variant, span As Variant
     Dim curkey As String, curitem As Variant
     Dim i As Long, lb As Long, ub As Long
     
     On Error GoTo Copy_clean_up
-    If isIterable(iterable) Then
-        Select Case TypeName(iterable)
+    If isDataStructure(DataStructure) Then
+        Select Case TypeName(DataStructure)
             Case "Dictionary"
                 Set rtn = New Scripting.Dictionary
-                For Each comp In Zip(iterable.Keys, iterable.Items)
+                For Each comp In Zip(DataStructure.Keys, DataStructure.Items)
                     curkey = comp(0)
                     If IsObject(comp(1)) Then
                         If failOnNestedObjects Then Err.Raise 450
@@ -336,7 +336,7 @@ Public Function Copy(iterable As Variant, Optional ByVal failOnNestedObjects As 
                 
             Case "Collection"
                 Set rtn = New Collection
-                For Each thing In iterable
+                For Each thing In DataStructure
                     If IsObject(thing) Then
                         If failOnNestedObjects Then
                             Err.Raise 450
@@ -351,13 +351,13 @@ Public Function Copy(iterable As Variant, Optional ByVal failOnNestedObjects As 
                 span = -1
                 
                 On Error Resume Next
-                lb = LBound(iterable)
-                ub = UBound(iterable)
+                lb = LBound(DataStructure)
+                ub = UBound(DataStructure)
                 
                 span = ub - lb
                 
                 If Err.Number = 0 Then
-                    ReDim rtn(LBound(iterable) To UBound(iterable))
+                    ReDim rtn(LBound(DataStructure) To UBound(DataStructure))
                   Else
                     GoTo Copy_clean_up
                 End If
@@ -365,11 +365,11 @@ Public Function Copy(iterable As Variant, Optional ByVal failOnNestedObjects As 
                 On Error GoTo Copy_clean_up
                 
                 For i = lb To ub
-                    If IsObject(iterable(i)) Then
+                    If IsObject(DataStructure(i)) Then
                         If failOnNestedObjects Then
                             Err.Raise 450
                           Else
-                            Set rtn(i) = Me.Copy(iterable(i)) 'Warning: recursive
+                            Set rtn(i) = Me.Copy(DataStructure(i)) 'Warning: recursive
                         End If
                     End If
                 Next i
@@ -392,64 +392,64 @@ Copy_clean_up:
 End Function
 
 
-Public Function Reverse(iterable As Variant, Optional ByVal propagate As Boolean = False) As Variant
+Public Function Reverse(DataStructure As Variant, Optional ByVal propagate As Boolean = False) As Variant
     Dim typeNm As String
-    Dim rtn As Variant, iterable_arr As Variant, col As Collection
+    Dim rtn As Variant, DataStructure_arr As Variant, col As Collection
     Dim lb As Integer, ub As Integer, i As Integer
     
-    If Not isIterable(iterable) Then
-        If IsObject(iterable) Then
-            Set Reverse = iterable
+    If Not isDataStructure(DataStructure) Then
+        If IsObject(DataStructure) Then
+            Set Reverse = DataStructure
           Else
-            Reverse = iterable
+            Reverse = DataStructure
         End If
         Exit Function
     End If
     
 'Initialize return container to appropriate type
-    typeNm = TypeName(iterable)
+    typeNm = TypeName(DataStructure)
     Select Case typeNm
         Case "Dictionary"
             Set rtn = New Scripting.Dictionary
         Case "Collection"
             Set rtn = New Collection
         Case Else
-            ReDim rtn(UBound(iterable))
+            ReDim rtn(UBound(DataStructure))
     End Select
     
 'Convert input into array for easy indexing
     Select Case typeNm
         Case "Dictionary"
-            iterable_arr = Zip(iterable) 'Creates nested array containing key-item pairs
+            DataStructure_arr = Zip(DataStructure) 'Creates nested array containing key-item pairs
         Case "Collection"
-            Set col = iterable
-            iterable_arr = CollectionToArray(col)
+            Set col = DataStructure
+            DataStructure_arr = CollectionToArray(col)
         Case Else
-            iterable_arr = iterable 'redundant, but uniform
+            DataStructure_arr = DataStructure 'redundant, but uniform
     End Select
     
 'Reverse elements
-    ub = UBound(iterable_arr)
-    lb = LBound(iterable_arr)
+    ub = UBound(DataStructure_arr)
+    lb = LBound(DataStructure_arr)
     For i = lb To ub
         Select Case typeNm
             Case "Dictionary"
-                If propagate And (isIterable(iterable_arr(ub - i)(1))) Then
-                    rtn.Add Key:=iterable_arr(ub - i)(0), Item:=Reverse(iterable_arr(ub - i)(1), propagate:=True)
+                If propagate And (isDataStructure(DataStructure_arr(ub - i)(1))) Then
+                    rtn.Add Key:=DataStructure_arr(ub - i)(0), Item:=Reverse(DataStructure_arr(ub - i)(1), propagate:=True)
                   Else
-                    rtn.Add Key:=iterable_arr(ub - i)(0), Item:=iterable_arr(ub - i)(1)
+                    rtn.Add Key:=DataStructure_arr(ub - i)(0), Item:=DataStructure_arr(ub - i)(1)
                 End If
             Case "Collection"
-                If propagate And (isIterable(iterable_arr(ub - i))) Then
-                    rtn.Add Item:=Reverse(iterable_arr(ub - i))
+                If propagate And (isDataStructure(DataStructure_arr(ub - i))) Then
+                    rtn.Add Item:=Reverse(DataStructure_arr(ub - i))
                   Else
-                    rtn.Add Item:=iterable_arr(ub - i)
+                    rtn.Add Item:=DataStructure_arr(ub - i)
                 End If
             Case Else
-                If propagate And (isIterable(iterable_arr(ub - i))) Then
-                    rtn(i) = Reverse(iterable_arr(ub - i))
+                If propagate And (isDataStructure(DataStructure_arr(ub - i))) Then
+                    rtn(i) = Reverse(DataStructure_arr(ub - i))
                   Else
-                    rtn(i) = iterable_arr(ub - i)
+                    rtn(i) = DataStructure_arr(ub - i)
                 End If
         End Select
     Next i
@@ -462,25 +462,25 @@ Public Function Reverse(iterable As Variant, Optional ByVal propagate As Boolean
 End Function
 
 
-Public Function Exists(element As Variant, search_iterable As Variant, Optional ByVal wildcard_element As Boolean = False, Optional ByVal wildcard_iterable As Boolean = False) As Boolean
+Public Function Exists(element As Variant, search_DataStructure As Variant, Optional ByVal wildcard_element As Boolean = False, Optional ByVal wildcard_DataStructure As Boolean = False) As Boolean
     Dim match_found As Boolean, typeNm As String
     Dim search_arr As Variant
     Dim col As Collection
     Dim itm As Variant
 On Error GoTo Exists_clean_up
     match_found = False
-    If Not isIterable(search_iterable) Then Exists = match_found: Exit Function
+    If Not isDataStructure(search_DataStructure) Then Exists = match_found: Exit Function
     
-'Standardize various possible input types for variable search_iterables - normalize as array
-    typeNm = TypeName(search_iterable)
+'Standardize various possible input types for variable search_DataStructures - normalize as array
+    typeNm = TypeName(search_DataStructure)
     Select Case typeNm
         Case "Dictionary" 'Dictionary has built in method for exists, but this function can expand the method to include wildcards on either the find/element side or the search side
-            search_arr = search_iterable.Items
+            search_arr = search_DataStructure.Items
         Case "Collection"
-            Set col = search_iterable 'reference assignment is necessary here because byref parameter can't handle a reference to a 2nd reference, to a 3rd reference, etc...
+            Set col = search_DataStructure 'reference assignment is necessary here because byref parameter can't handle a reference to a 2nd reference, to a 3rd reference, etc...
             search_arr = CollectionToArray(col)
         Case Else 'Array
-            search_arr = search_iterable
+            search_arr = search_DataStructure
     End Select
     
     For Each itm In search_arr
@@ -490,7 +490,7 @@ On Error GoTo Exists_clean_up
                 Exit For
             End If
         End If
-        If wildcard_iterable And (Not IsObject(itm)) And (Not IsObject(element)) Then
+        If wildcard_DataStructure And (Not IsObject(itm)) And (Not IsObject(element)) Then
             If CStr(element) Like ("*" & CStr(itm) & "*") Then
                 match_found = True
                 Exit For
@@ -510,7 +510,7 @@ On Error GoTo Exists_clean_up
         End If
         If ((IsObject(itm)) And (Not IsObject(element))) _
             Or ((Not IsObject(itm)) And (IsObject(element))) Then
-            match_found = False 'explicit, noting here that the search iterable might be composed of BOTH objects and non-objects,
+            match_found = False 'explicit, noting here that the search DataStructure might be composed of BOTH objects and non-objects,
                                                 '   and that the intent is to continue searching through the remainder of the for-loop
         End If
     Next itm
@@ -542,7 +542,7 @@ On Error GoTo enumerate_clean_up
     i = starting_idx
     typed_name = TypeName(enumerable)
 
-    If Not isIterable(typed_name, True) Then GoTo enumerate_clean_up
+    If Not isDataStructure(typed_name, True) Then GoTo enumerate_clean_up
     
     Select Case typed_name
         Case "Variant()", "String()", "Integer()", "Double()", _
@@ -585,7 +585,7 @@ Public Function fill(ByRef container As Variant, ByRef stuff As Variant, _
     Dim container_ As Variant
     
 On Error GoTo Fill_clean_up
-    If Not isIterable(container, accept_typename:=False) Then
+    If Not isDataStructure(container, accept_typename:=False) Then
         On Error Resume Next
         If Not IsObject(container) Then
             If IsNumeric(container) Then
@@ -600,7 +600,7 @@ On Error GoTo Fill_clean_up
         End If
 '        rtn = False
 '        GoTo Fill_clean_up
-      Else 'iterable
+      Else 'DataStructure
         If IsObject(container) Then
             Set container_ = container
           Else
@@ -674,7 +674,7 @@ Fill_clean_up:
         rtn = True
     End If
     
-    If isIterable(container) Then
+    If isDataStructure(container) Then
         'Save changes to byref container and return a boolean
         If IsObject(container_) Then
             Set container = container_
@@ -690,29 +690,29 @@ Fill_clean_up:
 End Function
 
 
-Public Function Filter(iterable As Variant, ByVal operator_expression As String, compare_against As Variant, ParamArray other_args() As Variant) As Variant
+Public Function Filter(DataStructure As Variant, ByVal operator_expression As String, compare_against As Variant, ParamArray other_args() As Variant) As Variant
 On Error GoTo Filter_clean_up
     Dim COLander As Collection
     Dim arr As Variant, val As Variant, thing As Variant
     Dim rtn As Variant
-    Dim operand_isIterable As Boolean
+    Dim operand_isDataStructure As Boolean
     
-    If Not isIterable(iterable, accept_typename:=False) Then
+    If Not isDataStructure(DataStructure, accept_typename:=False) Then
         GoTo Filter_clean_up
       Else
-        If TypeName(iterable) = "Dictionary" Then
+        If TypeName(DataStructure) = "Dictionary" Then
             'more complicated
           Else
-            arr = Me.Convert(iterable, "Variant()")
+            arr = Me.Convert(DataStructure, "Variant()")
         End If
     End If
     
-    operand_isIterable = isIterable(compare_against)
+    operand_isDataStructure = isDataStructure(compare_against)
     
     operator_expression = Trim(operator_expression)
     If Me.Exists(LCase(operator_expression), Array("in", "is in", "not in", "is not in", "inside", "between", "out", "outside", "beyond")) Then
-        If operand_isIterable Then
-            operand_isIterable = False 'Though technically an iterable operator, the intention is not to iterate on each individual element, but to check the operand as a whole
+        If operand_isDataStructure Then
+            operand_isDataStructure = False 'Though technically an DataStructure operator, the intention is not to iterate on each individual element, but to check the operand as a whole
         End If
     End If
     
@@ -729,10 +729,10 @@ On Error GoTo Filter_clean_up
                 "in", "is in", "not in", "is not in", _
                 "inside", "between", _
                 "out", "outside", "beyond"
-            If operand_isIterable Then
+            If operand_isDataStructure Then
                 'Check against many
               Else
-                For Each thing In iterable
+                For Each thing In DataStructure
                     If Resolve(thing, LCase(operator_expression), compare_against) Then
                         COLander.Add thing
                       Else
@@ -762,10 +762,10 @@ On Error GoTo Filter_clean_up
         Case Else
     End Select
     
-    If IsObject(iterable) Then
-        Set rtn = Convert(COLander, TypeName(iterable))
+    If IsObject(DataStructure) Then
+        Set rtn = Convert(COLander, TypeName(DataStructure))
       Else
-        rtn = Convert(COLander, TypeName(iterable))
+        rtn = Convert(COLander, TypeName(DataStructure))
     End If
     
 Filter_clean_up:
@@ -779,17 +779,17 @@ Filter_clean_up:
 End Function
 
 
-Public Function Flatten(embedded_iterable As Variant, Optional ByVal OutputType As String = "") As Variant
+Public Function Flatten(embedded_DataStructure As Variant, Optional ByVal OutputType As String = "") As Variant
     Dim recursive_col As Collection
     Dim rtn As Variant
-    Dim thing As Variant, validated_iterable As Variant
+    Dim thing As Variant, validated_DataStructure As Variant
     Dim rtn_type As String
     
-    If isIterable(embedded_iterable) Then
-        If isIterable(OutputType) Then
+    If isDataStructure(embedded_DataStructure) Then
+        If isDataStructure(OutputType) Then
             rtn_type = OutputType
           Else
-            rtn_type = TypeName(embedded_iterable)
+            rtn_type = TypeName(embedded_DataStructure)
         End If
       Else
         Set Flatten = Nothing
@@ -798,19 +798,19 @@ Public Function Flatten(embedded_iterable As Variant, Optional ByVal OutputType 
     
     Set recursive_col = New Collection
     
-    If TypeName(embedded_iterable) = "Dictionary" Then
-        validated_iterable = Zip(embedded_iterable)
+    If TypeName(embedded_DataStructure) = "Dictionary" Then
+        validated_DataStructure = Zip(embedded_DataStructure)
       Else
         On Error Resume Next
-        validated_iterable = embedded_iterable
+        validated_DataStructure = embedded_DataStructure
         If Err.Number <> 0 Then
             Err.Clear
-            Set validated_iterable = embedded_iterable
+            Set validated_DataStructure = embedded_DataStructure
         End If
     End If
     
-    For Each thing In validated_iterable
-        If isIterable(thing) Then
+    For Each thing In validated_DataStructure
+        If isDataStructure(thing) Then
             Set recursive_col = Merge(recursive_col, Flatten(thing))
           Else
             recursive_col.Add Item:=thing
@@ -830,20 +830,20 @@ Public Function Flatten(embedded_iterable As Variant, Optional ByVal OutputType 
     
 End Function
 
-Public Function GuiltyByAssociation(associated_iterable As Variant, iterable As Variant, ByVal operator_expression As String, compare_against As Variant, ParamArray other_args() As Variant) As Variant
+Public Function GuiltyByAssociation(associated_DataStructure As Variant, DataStructure As Variant, ByVal operator_expression As String, compare_against As Variant, ParamArray other_args() As Variant) As Variant
 
 End Function
 
 
-Public Function Intersection(ParamArray iterables() As Variant) As Variant
-    'Get common elements between 2 or more iterable items
+Public Function Intersection(ParamArray DataStructures() As Variant) As Variant
+    'Get common elements between 2 or more DataStructure items
     'Dictionaries & collections will be compared by items and not by keys
     'Caution - potentially expensive operation
     'Requires homogeneous parameters, i.e., same type
     
     Dim master_collection As Collection
     Dim dict As Scripting.Dictionary
-    Dim iterable As Variant, thing As Variant
+    Dim DataStructure As Variant, thing As Variant
     Dim i As Long, j As Long
     Dim arr As Variant, structure As Variant, main_structure As Variant
     Dim homCol As Collection
@@ -851,7 +851,7 @@ Public Function Intersection(ParamArray iterables() As Variant) As Variant
     
 On Error GoTo Intersection_clean_up
     Set homCol = New Collection
-    For Each thing In iterables
+    For Each thing In DataStructures
         homCol.Add thing
     Next thing
     
@@ -865,7 +865,7 @@ On Error GoTo Intersection_clean_up
     End If
     
     If master_collection.Count <= 1 Then 'Haven't decided what to do about calling an intersection on a singular item
-        'if preventing user from calling method on a singular item, should change the parameters to iterable1, iterable2, paramarray others() as variant
+        'if preventing user from calling method on a singular item, should change the parameters to DataStructure1, DataStructure2, paramarray others() as variant
         GoTo Intersection_clean_up
     End If
     For i = 1 To master_collection.Count
@@ -884,7 +884,7 @@ On Error GoTo Intersection_clean_up
 '            GoTo Intersection_clean_up
 '        Case "Dictionary", "Collection"
 '            'Proper format already
-'            'COPY EACH ITERABLE
+'            'COPY EACH DataStructure
 '            For Each structure In homCol
 '                Set thing = Me.Copy(structure)
 '                master_collection.Add thing
@@ -917,7 +917,7 @@ Intersection_clean_up:
 End Function
 
 
-Public Function Homogeneous(iterable As Variant, ParamArray others() As Variant) As Variant
+Public Function Homogeneous(DataStructure As Variant, ParamArray others() As Variant) As Variant
 'Check if all elements of the provided arguments are same-typed
 'Returns the typename if uniform, False otherwise
     Dim rtn As Variant
@@ -931,17 +931,17 @@ On Error GoTo Homogeneous_clean_up
     
     If UBound(others) >= 0 Then
         
-        all_args.Add iterable
+        all_args.Add DataStructure
         For Each thing In others
             all_args.Add thing
         Next thing
     
-      ElseIf isIterable(iterable) Then
-        For Each thing In iterable
+      ElseIf isDataStructure(DataStructure) Then
+        For Each thing In DataStructure
             all_args.Add thing
         Next thing
-      ElseIf Not IsObject(iterable) Then
-        all_args.Add iterable
+      ElseIf Not IsObject(DataStructure) Then
+        all_args.Add DataStructure
       Else
         rtn = False
         GoTo Homogeneous_clean_up
@@ -977,10 +977,10 @@ Homogeneous_clean_up:
 End Function
 
 
-Public Function Merge(ParamArray iterables() As Variant) As Variant
+Public Function Merge(ParamArray DataStructures() As Variant) As Variant
     Dim merge_dictionary As Scripting.Dictionary
     Dim submerge As Variant, submerge_arr As Variant, comp As Variant
-    Dim copy_iterables As Variant
+    Dim copy_DataStructures As Variant
     Dim output_type As String
     Dim i As Integer, j As Integer
     Dim basekey As String, key_ As String, addkey As String
@@ -988,10 +988,10 @@ Public Function Merge(ParamArray iterables() As Variant) As Variant
     
     Set merge_dictionary = New Scripting.Dictionary
     
-    output_type = TypeName(iterables(0))
-    If Not isIterable(output_type, accept_typename:=True) Then Exit Function
+    output_type = TypeName(DataStructures(0))
+    If Not isDataStructure(output_type, accept_typename:=True) Then Exit Function
     
-    For Each submerge In iterables
+    For Each submerge In DataStructures
         i = 1
         If TypeName(submerge) = "Dictionary" And output_type = "Dictionary" Then
             'Splice together keys and items to the main dictionary while retaining keys
@@ -1032,38 +1032,38 @@ Public Function Merge(ParamArray iterables() As Variant) As Variant
 
 End Function
 
-Public Function Minimum(iterable As Variant, Optional ByVal string_support As Boolean = False) As Variant
+Public Function Minimum(DataStructure As Variant, Optional ByVal string_support As Boolean = False) As Variant
 'String support will enable string length comparisons string lengths of provided elements
     Dim val As Variant
     Dim col As Collection
     Dim numeric_composition As Boolean
     Dim string_composition As Boolean
     Dim lowest As Variant
-    Dim iterable_copy As Variant
+    Dim DataStructure_copy As Variant
     
-    If Not isIterable(iterable) Then GoTo Minimum_clean_up
-    If IterableCount(iterable) < 1 Then GoTo Minimum_clean_up
+    If Not isDataStructure(DataStructure) Then GoTo Minimum_clean_up
+    If DataStructureCount(DataStructure) < 1 Then GoTo Minimum_clean_up
     
-    Select Case TypeName(iterable)
+    Select Case TypeName(DataStructure)
         Case "Dictionary"
-            iterable_copy = iterable.Items
+            DataStructure_copy = DataStructure.Items
         Case "Collection"
-            Set col = iterable
-            iterable_copy = CollectionToArray(col)
+            Set col = DataStructure
+            DataStructure_copy = CollectionToArray(col)
         Case Else
-            iterable_copy = iterable
+            DataStructure_copy = DataStructure
     End Select
     
-    For Each val In iterable_copy
+    For Each val In DataStructure_copy
         If Not IsNumeric(val) Then
             numeric_composition = False
             Exit For
         End If
     Next val
     
-    lowest = iterable_copy(0)
+    lowest = DataStructure_copy(0)
     If numeric_composition Then
-        For Each val In iterable_copy
+        For Each val In DataStructure_copy
             If val < lowest Then
                 lowest = val
             End If
@@ -1076,38 +1076,38 @@ Minimum_clean_up:
     Minimum = lowest
 End Function
 
-Public Function Maximum(iterable As Variant) As Variant
+Public Function Maximum(DataStructure As Variant) As Variant
 'String support will enable string length comparisons string lengths of provided elements
     Dim val As Variant
     Dim col As Collection
     Dim numeric_composition As Boolean
     Dim string_composition As Boolean
     Dim highest As Variant
-    Dim iterable_copy As Variant
+    Dim DataStructure_copy As Variant
     
-    If Not isIterable(iterable) Then GoTo Maximum_clean_up
-    If IterableCount(iterable) < 1 Then GoTo Maximum_clean_up
+    If Not isDataStructure(DataStructure) Then GoTo Maximum_clean_up
+    If DataStructureCount(DataStructure) < 1 Then GoTo Maximum_clean_up
     
-    Select Case TypeName(iterable)
+    Select Case TypeName(DataStructure)
         Case "Dictionary"
-            iterable_copy = iterable.Items
+            DataStructure_copy = DataStructure.Items
         Case "Collection"
-            Set col = iterable
-            iterable_copy = CollectionToArray(col)
+            Set col = DataStructure
+            DataStructure_copy = CollectionToArray(col)
         Case Else
-            iterable_copy = iterable
+            DataStructure_copy = DataStructure
     End Select
     
-    For Each val In iterable_copy
+    For Each val In DataStructure_copy
         If Not IsNumeric(val) Then
             numeric_composition = False
             Exit For
         End If
     Next val
     
-    highest = iterable_copy(0)
+    highest = DataStructure_copy(0)
     If numeric_composition Then
-        For Each val In iterable_copy
+        For Each val In DataStructure_copy
             If val > highest Then
                 highest = val
             End If
@@ -1143,68 +1143,68 @@ Public Function Ones(ParamArray dimensions() As Variant) As Variant
 End Function
 
 
-Public Function Outersection(ParamArray iterables() As Variant) As Variant
+Public Function Outersection(ParamArray DataStructures() As Variant) As Variant
     'Returns the uncommon elements
 End Function
 
 
-Public Function Pop(ByRef iterable As Variant, Optional ByVal Index As Long) As Variant
+Public Function Pop(ByRef DataStructure As Variant, Optional ByVal Index As Long) As Variant
     'Return the item indicated by the identifier; mutate the reference to exclude the element denoted by identifier
     Dim rtn As Variant, mutated As Variant
     Dim arr As Variant, comp As Variant
     Dim i As Integer, j As Integer, keyrem As Variant
     
-    If Not isIterable(iterable) Then
+    If Not isDataStructure(DataStructure) Then
         GoTo Pop_clean_up
     End If
     
-    Select Case TypeName(iterable)
+    Select Case TypeName(DataStructure)
 
         Case "Dictionary"
             If IsMissing(Index) Then Index = 0
-            If Index = -1 Then Index = iterable.Count - 1 'Last element
+            If Index = -1 Then Index = DataStructure.Count - 1 'Last element
             
-            If iterable.Count >= Index + 1 Then
-                arr = Me.Zip(iterable.Keys, iterable.Items)
+            If DataStructure.Count >= Index + 1 Then
+                arr = Me.Zip(DataStructure.Keys, DataStructure.Items)
                 keyrem = arr(Index)(0)
                 If IsObject(arr(Index)(1)) Then
                     Set rtn = arr(Index)(1)
                   Else
                     rtn = arr(Index)(1)
                 End If
-                iterable.Remove Key:=keyrem
+                DataStructure.Remove Key:=keyrem
             End If
             
         Case "Collection"
             If IsMissing(Index) Then Index = 1
-            If Index = -1 Then Index = iterable.Count
+            If Index = -1 Then Index = DataStructure.Count
             If Index = 0 Then Index = 1 'Collections are base 1
-            If iterable.Count >= Index Then
-                If IsObject(iterable(Index)) Then
-                    Set rtn = iterable(Index)
+            If DataStructure.Count >= Index Then
+                If IsObject(DataStructure(Index)) Then
+                    Set rtn = DataStructure(Index)
                   Else
-                    rtn = iterable(Index)
+                    rtn = DataStructure(Index)
                 End If
             End If
             
-            If iterable.Count > 0 Then
-                Set iterable = Me.Remove(iterable, Index - 1) 'Method [Remove] uses index base 0
+            If DataStructure.Count > 0 Then
+                Set DataStructure = Me.Remove(DataStructure, Index - 1) 'Method [Remove] uses index base 0
             End If
 
         Case Else 'Array
             If IsMissing(Index) Then Index = 0
-            If Index = -1 Then Index = UBound(iterable)
-            If UBound(iterable) = 0 Then
-                rtn = iterable(0)
-                iterable = Array()
+            If Index = -1 Then Index = UBound(DataStructure)
+            If UBound(DataStructure) = 0 Then
+                rtn = DataStructure(0)
+                DataStructure = Array()
                 GoTo Pop_clean_up
             End If
-            ReDim mutated(UBound(iterable) - 1)
-            rtn = iterable(Index)
+            ReDim mutated(UBound(DataStructure) - 1)
+            rtn = DataStructure(Index)
             j = 0 'index of last addition to mutated array, starting from 0
-            For i = 0 To UBound(iterable)
+            For i = 0 To UBound(DataStructure)
                 If i <> Index Then
-                    mutated(j) = iterable(i)
+                    mutated(j) = DataStructure(i)
                     j = j + 1
                 End If
             Next i
@@ -1212,7 +1212,7 @@ Public Function Pop(ByRef iterable As Variant, Optional ByVal Index As Long) As 
                 'uh oh
                 'don't overwrite
               Else
-                iterable = mutated
+                DataStructure = mutated
             End If
     End Select
     
@@ -1230,32 +1230,32 @@ Pop_clean_up:
 
 End Function
 
-Public Function Remove(iterable As Variant, Optional ByVal Index As Integer = 0) As Variant
+Public Function Remove(DataStructure As Variant, Optional ByVal Index As Integer = 0) As Variant
     Dim col As Collection
     Dim i As Integer
     Dim arr As Variant, rtn As Variant
     Dim rkey As String
     
-    If Not isIterable(iterable) Then
+    If Not isDataStructure(DataStructure) Then
         On Error Resume Next
-        Remove = iterable
-        If Err.Number <> 0 Then Err.Clear: Set Remove = iterable
+        Remove = DataStructure
+        If Err.Number <> 0 Then Err.Clear: Set Remove = DataStructure
         Exit Function
     End If
     
-    Select Case TypeName(iterable)
+    Select Case TypeName(DataStructure)
         Case "Dictionary"
-            rkey = iterable.Keys(Index)
-            Set rtn = iterable.Remove(rkey)
+            rkey = DataStructure.Keys(Index)
+            Set rtn = DataStructure.Remove(rkey)
         Case "Collection"
-            Set col = iterable
+            Set col = DataStructure
             arr = CollectionToArray(col)
             Set rtn = ArrayToCollection(Me.Remove(arr, Index))
         Case Else
             Set col = New Collection
             
-            For i = 0 To UBound(iterable)
-                If i <> Index Then col.Add iterable(i)
+            For i = 0 To UBound(DataStructure)
+                If i <> Index Then col.Add DataStructure(i)
             Next i
             rtn = CollectionToArray(col)
     End Select
@@ -1271,16 +1271,16 @@ Public Function Transpose(ParamArray DataStructures() As Variant) As Variant
 
 End Function
 
-Public Function Zip(ParamArray iterables() As Variant) As Variant
+Public Function Zip(ParamArray DataStructures() As Variant) As Variant
     On Error GoTo Zip_clean_up
-    Dim rtn As Variant, copy_iterables As Variant, iterable As Variant, thing As Variant
+    Dim rtn As Variant, copy_DataStructures As Variant, DataStructure As Variant, thing As Variant
     Dim output_col As Collection, tcol As Collection
     Dim i As Integer, j As Integer, thisCount As Integer, lastCount As Integer, itCount As Integer
 
 'Make sure all parameters are the same count/size
     lastCount = -2 'arbitrary, but not -1 since ubound of empty array is -1
-    For Each iterable In iterables
-        thisCount = IterableCount(iterable)
+    For Each DataStructure In DataStructures
+        thisCount = DataStructureCount(DataStructure)
         
         If lastCount = -2 Then
             lastCount = thisCount
@@ -1291,13 +1291,13 @@ Public Function Zip(ParamArray iterables() As Variant) As Variant
             Zip = Empty
             Exit Function
         End If
-    Next iterable
-    itCount = thisCount 'Use later to output and size the return array to the span (itCount) of the input iterables
+    Next DataStructure
+    itCount = thisCount 'Use later to output and size the return array to the span (itCount) of the input DataStructures
     
     'Special case for standalone dictionaries; dictionaries are compacted and returned
-    If UBound(iterables) = 0 Then
-        If TypeName(iterables(0)) = "Dictionary" Then
-            With iterables(0)
+    If UBound(DataStructures) = 0 Then
+        If TypeName(DataStructures(0)) = "Dictionary" Then
+            With DataStructures(0)
                 rtn = zipArray_(.Keys, .Items)
             End With
             Zip = rtn
@@ -1305,16 +1305,16 @@ Public Function Zip(ParamArray iterables() As Variant) As Variant
         End If
     End If
     
-    ReDim copy_iterables(UBound(iterables))
-    For i = 0 To UBound(iterables)
+    ReDim copy_DataStructures(UBound(DataStructures))
+    For i = 0 To UBound(DataStructures)
         On Error Resume Next
-        copy_iterables(i) = iterables(i)
+        copy_DataStructures(i) = DataStructures(i)
         If Err.Number <> 0 Then
             Err.Clear
-            If TypeName(iterables(i)) = "Collection" Then
-                Set copy_iterables(i) = iterables(i)
-              ElseIf TypeName(iterables(i)) = "Dictionary" Then
-                copy_iterables(i) = Zip(iterables(i))
+            If TypeName(DataStructures(i)) = "Collection" Then
+                Set copy_DataStructures(i) = DataStructures(i)
+              ElseIf TypeName(DataStructures(i)) = "Dictionary" Then
+                copy_DataStructures(i) = Zip(DataStructures(i))
               Else
                 Debug.Print "Error in Zip (not a standard raised error): the indexed retrieval errored out, and the object passed doesn't qualify as a Collection or Dictionary"
                 Exit Function
@@ -1330,7 +1330,7 @@ Public Function Zip(ParamArray iterables() As Variant) As Variant
     
     For j = 0 To itCount - 1
         Set tcol = New Collection
-        For Each thing In copy_iterables
+        For Each thing In copy_DataStructures
             Select Case TypeName(thing)
                 Case "Collection"
                     tcol.Add Item:=thing(j + 1)
@@ -1350,43 +1350,43 @@ End Function
 
 
 'PRIVATE AUXILIARY METHODS
-Private Function IterableCount(ByRef iterable As Variant) As Integer
-On Error GoTo IterableCount_clean_up
+Private Function DataStructureCount(ByRef DataStructure As Variant) As Integer
+On Error GoTo DataStructureCount_clean_up
     Dim i As Integer, val As Variant
     i = 0
-    For Each val In iterable
+    For Each val In DataStructure
         i = i + 1
     Next val
-IterableCount_clean_up:
+DataStructureCount_clean_up:
     If Err.Number <> 0 Then Err.Clear
 '    If Err.number <> 0 Then Debug.Print "Error [" & Err.number & "]: " & Err.description
-    IterableCount = i
+    DataStructureCount = i
 End Function
 
 
-Private Function IterableMaxSpan(ByRef iterable As Variant) As Long
-
-End Function
-
-
-Private Function IterableToArray(iterable As Variant) As Integer
+Private Function DataStructureMaxSpan(ByRef DataStructure As Variant) As Long
 
 End Function
 
 
-Private Function isIterable(iterable As Variant, Optional ByVal accept_typename As Boolean = True) As Boolean
+Private Function DataStructureToArray(DataStructure As Variant) As Integer
+
+End Function
+
+
+Private Function isDataStructure(DataStructure As Variant, Optional ByVal accept_typename As Boolean = True) As Boolean
     Dim typnm As String
     Dim rtn As Boolean: rtn = False
 'Note:
 '       Accepts Syntax:
-'1.           isIterable("Variant()")
-'2.          isIterable(object)
-    If accept_typename And TypeName(iterable) = "String" Then
-        typnm = iterable
+'1.           isDataStructure("Variant()")
+'2.          isDataStructure(object)
+    If accept_typename And TypeName(DataStructure) = "String" Then
+        typnm = DataStructure
       Else
-        typnm = TypeName(iterable)
+        typnm = TypeName(DataStructure)
     End If
-    Select Case typnm 'Accepts string name of iterable type as well as the iterable itself
+    Select Case typnm 'Accepts string name of DataStructure type as well as the DataStructure itself
         Case "Variant()", "Long()", _
                     "Single()", "Byte()", _
                     "Integer()", "Double()", _
@@ -1396,20 +1396,20 @@ Private Function isIterable(iterable As Variant, Optional ByVal accept_typename 
         Case Else
             rtn = False
     End Select
-    isIterable = rtn
+    isDataStructure = rtn
 End Function
 
 
-Private Function CollectionToArray(iterable_col As Collection) As Variant
+Private Function CollectionToArray(DataStructure_col As Collection) As Variant
     Dim arr As Variant
     Dim i As Integer
-    If iterable_col.Count > 0 Then
-        ReDim arr(iterable_col.Count - 1)
+    If DataStructure_col.Count > 0 Then
+        ReDim arr(DataStructure_col.Count - 1)
         For i = 0 To UBound(arr)
-            If IsObject(iterable_col(i + 1)) Then
-                Set arr(i) = iterable_col(i + 1)
+            If IsObject(DataStructure_col(i + 1)) Then
+                Set arr(i) = DataStructure_col(i + 1)
               Else
-                arr(i) = iterable_col(i + 1)
+                arr(i) = DataStructure_col(i + 1)
             End If
         Next i
       Else
@@ -1419,15 +1419,15 @@ Private Function CollectionToArray(iterable_col As Collection) As Variant
 End Function
 
 
-Private Function DictionaryToArray(iterable_dictionary As Scripting.Dictionary) As Variant
+Private Function DictionaryToArray(DataStructure_dictionary As Scripting.Dictionary) As Variant
     Dim comp As Variant, keyarr As Variant, itemarr As Variant
     Dim arr() As Variant
     Dim i As Integer
-    If iterable_dictionary.Count > 0 Then
-        ReDim arr(iterable_dictionary.Count - 1)
-        keyarr = iterable_dictionary.Keys
-        itemarr = iterable_dictionary.Items
-        For i = 0 To (iterable_dictionary.Count - 1)
+    If DataStructure_dictionary.Count > 0 Then
+        ReDim arr(DataStructure_dictionary.Count - 1)
+        keyarr = DataStructure_dictionary.Keys
+        itemarr = DataStructure_dictionary.Items
+        For i = 0 To (DataStructure_dictionary.Count - 1)
             arr(i) = Array(keyarr(i), itemarr(i))
         Next i
     End If
@@ -1435,18 +1435,18 @@ Private Function DictionaryToArray(iterable_dictionary As Scripting.Dictionary) 
 End Function
 
 
-Private Function ArrayToCollection(iterable As Variant, Optional ByVal populateKeys As Boolean = True) As Collection
+Private Function ArrayToCollection(DataStructure As Variant, Optional ByVal populateKeys As Boolean = True) As Collection
     Dim rtn_col As Collection
     Dim val As Variant
     Set rtn_col = New Collection
     
-    If IsArray(iterable) Then
+    If IsArray(DataStructure) Then
         On Error Resume Next
-        If UBound(iterable) >= 0 Then
+        If UBound(DataStructure) >= 0 Then
             If Err.Number <> 0 Then
                 'No items to add
               Else
-                For Each val In iterable
+                For Each val In DataStructure
                     rtn_col.Add val
                 Next val
             End If
@@ -1457,17 +1457,17 @@ Private Function ArrayToCollection(iterable As Variant, Optional ByVal populateK
 End Function
 
 
-Private Function ArrayToDictionary(iterable As Variant, Optional ByVal populateKeys As Boolean = True) As Scripting.Dictionary
+Private Function ArrayToDictionary(DataStructure As Variant, Optional ByVal populateKeys As Boolean = True) As Scripting.Dictionary
     Dim rtn_dictionary As Scripting.Dictionary
     Dim nextkey As String, basekey As String
     Dim val As Variant, comp As Variant
     Dim keyidx_suffix As Integer, i As Integer
     Set rtn_dictionary = New Scripting.Dictionary
     
-    If IsArray(iterable) Then
-        If IsArray(iterable(0)) Then
+    If IsArray(DataStructure) Then
+        If IsArray(DataStructure(0)) Then
             If populateKeys Then
-                For Each comp In iterable
+                For Each comp In DataStructure
                     keyidx_suffix = 0
                     basekey = CStr(comp(0))
                     nextkey = basekey
@@ -1479,14 +1479,14 @@ Private Function ArrayToDictionary(iterable As Variant, Optional ByVal populateK
                 Next comp
               Else 'ignore keys, use regular indexing
                 i = 0
-                For Each val In iterable
+                For Each val In DataStructure
                     rtn_dictionary.Add Key:=i, Item:=val
                     i = i + 1
                 Next val
             End If 'populate keys
           Else
             i = 0
-            For Each val In iterable
+            For Each val In DataStructure
                 rtn_dictionary.Add Key:=i, Item:=val
                 i = i + 1
             Next val
