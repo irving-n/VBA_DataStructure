@@ -12,59 +12,12 @@ Option Explicit
 '
 '   DataStructure: A value-variable or object-variable which holds a set of other values/objects
 
-Private Type tDataStructureStringSettings
-    InputDelimiter As String
-    OutputDelimiter As String
-End Type
-
-
-Private Type tDataStructureSettings
-    Strings As tDataStructureStringSettings
-End Type
-
-
-Private Type tDataStructureProperties
-    Settings As tDataStructureSettings
-    DefaultOutputType As String
-End Type
-
-Private This As tDataStructureProperties
 
 Private Sub Class_Initialize()
-    With This
-        With .Settings
-            With .Strings
-                .InputDelimiter = ";"
-                .OutputDelimiter = ";"
-            End With
-        End With
-        .DefaultOutputType = "Variant()"
-    End With
 End Sub
 
 
 'PROPERTIES
-'Public Property Get Settings() As tDataStructureSettings
-'    Settings = This.Settings
-'End Property
-
-
-Public Property Get StringInputDelimiter() As String
-    StringInputDelimiter = This.Settings.Strings.InputDelimiter
-End Property
-
-Public Property Let StringInputDelimiter(ByVal val As String)
-    This.Settings.Strings.InputDelimiter = val
-End Property
-
-
-Public Property Get StringOutputDelimiter() As String
-    StringOutputDelimiter = This.Settings.Strings.OutputDelimiter
-End Property
-
-Public Property Let StringOutputDelimiter(ByVal val As String)
-    This.Settings.Strings.OutputDelimiter = val
-End Property
 
 
 'METHODS
