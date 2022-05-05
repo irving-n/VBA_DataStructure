@@ -1651,9 +1651,15 @@ Private Function DataStructureCount(ByRef DataStructure As Variant) As Integer
 On Error GoTo DataStructureCount_clean_up
     Dim i As Integer, val As Variant
     i = 0
-    For Each val In DataStructure
-        i = i + 1
-    Next val
+    If TypeName(DataStructure) = "Dictionary" Then
+        For Each val In DataStructure.Items
+            i = i + 1
+        Next val
+      Else
+        For Each val In DataStructure
+            i = i + 1
+        Next val
+    End If
 DataStructureCount_clean_up:
     If Err.Number <> 0 Then Err.Clear
 '    If Err.number <> 0 Then Debug.Print "Error [" & Err.number & "]: " & Err.description
