@@ -1493,6 +1493,36 @@ Pop_clean_up:
 
 End Function
 
+
+Public Function Postfixed(postfixables As Variant, ByVal postfix As String, Optional ByVal apply_to_dict_keys As Boolean = False) As Variant
+    If IsObject(postfixables) Then
+        Set Postfixed = outerfix(postfixables, _
+                                            attachment:=postfix, _
+                                            prefix:=False, _
+                                            apply_to_dict_keys:=apply_to_dict_keys)
+      Else
+        Postfixed = outerfix(postfixables, _
+                                    attachment:=postfix, _
+                                    prefix:=True, _
+                                    apply_to_dict_keys:=apply_to_dict_keys)
+    End If
+End Function
+
+Public Function Prefixed(prefixables As Variant, ByVal prefix As String, Optional ByVal apply_to_dict_keys As Boolean = False) As Variant
+    If IsObject(prefixables) Then
+        Set Prefixed = outerfix(prefixables, _
+                                            attachment:=prefix, _
+                                            prefix:=True, _
+                                            apply_to_dict_keys:=apply_to_dict_keys)
+      Else
+        Prefixed = outerfix(prefixables, _
+                                    attachment:=prefix, _
+                                    prefix:=True, _
+                                    apply_to_dict_keys:=apply_to_dict_keys)
+    End If
+End Function
+
+
 Public Function Remove(DataStructure As Variant, Optional ByVal Index As Integer = 0) As Variant
     Dim col As Collection
     Dim i As Integer
@@ -1840,6 +1870,84 @@ On Error GoTo 0
 'Return the result
     zipArray_ = rtn
 End Function
+
+
+Private Function outerfix(stringables As Variant, ByVal attachment As String, Optional ByVal prefix As Boolean = True, Optional ByVal apply_to_dict_keys As Boolean = False) As Variant
+    Dim col As Collection
+    Dim unfixed As String, tmpFixed, i As Integer
+    Dim elem As Variant, elements As Variant
+    Dim output As Variant
+    
+On Error GoTo outerfix_clean_up
+    If TypeOf stringables Is Collection Then GoTo outerfix_clean_up 'Won't be able to return an equivalent Collection since Collection keys and items are immutable
+    
+    If isDataStructure(stringables) Then
+        Set col = New Collection
+        If TypeName(stringables) = "Dictionary" Then
+            elements = IIf(apply_to_dict_keys, stringables.Keys, stringables.Items)
+          ElseIf TypeName(stringables) = "Collection" Then
+            GoTo outerfix_clean_up
+          Else
+            elements = stringables
+        End If
+    End If
+
+    For Each elem In elements
+        unfixed = ""
+        On Error Resume Next
+        unfixed = CStr(elem) 'Error may occur on this line for non-convertable variables, e.g., objects
+        If Err.Number <> 0 Then
+            Err.Clear
+            tmpFixed = ""
+          Else
+            tmpFixed = IIf(prefix, attachment & unfixed, unfixed & attachment)
+        End If
+        On Error GoTo outerfix_clean_up
+        col.Add tmpFixed
+    Next elem
+    
+    Set output = Copy(stringables)
+    
+    Select Case TypeName(output)
+        Case "Dictionary" 'Copy stringables so that the values in the reference are unchanged
+            For i = 0 To UBound(elements)
+                If col(i + 1) = "" Then
+                    'Pass
+                  Else
+                    If apply_to_dict_keys Then
+                        output.Key(elements(i)) = col(i + 1) 'Collection is index base 1
+                      Else 'apply to dictionary items instead
+                        output.Item(elements(i)) = col(i + 1)
+                    End If
+                End If 'Unable to convert value in code block above this one
+            Next i
+        Case "Collection"
+            GoTo outerfix_clean_up 'Invalid - collections are immutable; returning a collection without retaining the keys may be undesirable
+        Case Else
+            For i = 0 To UBound(stringables)
+                If col(i + 1) = "" Then
+                    'Pass
+                  Else
+                    output(i) = col(i + 1)
+                End If
+            Next i
+    End Select
+    
+outerfix_clean_up:
+    If Err.Number <> 0 Then
+        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print Tab(10); "Class [" & TypeName(Me) & "] - Method [" & "outerfix" & "]"
+        Err.Clear
+        If IsObject(stringables) Then Set output = Nothing
+    End If
+    
+    If IsObject(stringables) Then
+        Set outerfix = output
+      Else
+        outerfix = output
+    End If
+End Function
+
 
 Private Function Resolve(left_side As Variant, operator As String, right_side As Variant) As Boolean
 On Error GoTo Resolve_clean_up
