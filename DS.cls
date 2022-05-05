@@ -501,54 +501,54 @@ Public Function Reverse(DataStructure As Variant, Optional ByVal propagate As Bo
 End Function
 
 
-Public Function Exists(element As Variant, search_DataStructure As Variant, Optional ByVal wildcard_element As Boolean = False, Optional ByVal wildcard_DataStructure As Boolean = False) As Boolean
+Public Function Exists(needle As Variant, haystack As Variant, Optional ByVal wildcard_needle As Boolean = False, Optional ByVal wildcard_haystack As Boolean = False) As Boolean
     Dim match_found As Boolean, typeNm As String
     Dim search_arr As Variant
     Dim col As Collection
     Dim itm As Variant
 On Error GoTo Exists_clean_up
     match_found = False
-    If Not isDataStructure(search_DataStructure) Then Exists = match_found: Exit Function
+    If Not isDataStructure(haystack) Then Exists = match_found: Exit Function
     
-'Standardize various possible input types for variable search_DataStructures - normalize as array
-    typeNm = TypeName(search_DataStructure)
+'Standardize various possible input types for variable haystacks - normalize as array
+    typeNm = TypeName(haystack)
     Select Case typeNm
-        Case "Dictionary" 'Dictionary has built in method for exists, but this function can expand the method to include wildcards on either the find/element side or the search side
-            search_arr = search_DataStructure.Items
+        Case "Dictionary" 'Dictionary has built in method for exists, but this function can expand the method to include wildcards on either the find/needle side or the search side
+            search_arr = haystack.Items
         Case "Collection"
-            Set col = search_DataStructure 'reference assignment is necessary here because byref parameter can't handle a reference to a 2nd reference, to a 3rd reference, etc...
+            Set col = haystack 'reference assignment is necessary here because byref parameter can't handle a reference to a 2nd reference, to a 3rd reference, etc...
             search_arr = CollectionToArray(col)
         Case Else 'Array
-            search_arr = search_DataStructure
+            search_arr = haystack
     End Select
     
     For Each itm In search_arr
-        If wildcard_element And (Not IsObject(itm)) And (Not IsObject(element)) Then
-            If CStr(itm) Like ("*" & CStr(element) & "*") Then
+        If wildcard_needle And (Not IsObject(itm)) And (Not IsObject(needle)) Then
+            If CStr(itm) Like ("*" & CStr(needle) & "*") Then
                 match_found = True
                 Exit For
             End If
         End If
-        If wildcard_DataStructure And (Not IsObject(itm)) And (Not IsObject(element)) Then
-            If CStr(element) Like ("*" & CStr(itm) & "*") Then
+        If wildcard_haystack And (Not IsObject(itm)) And (Not IsObject(needle)) Then
+            If CStr(needle) Like ("*" & CStr(itm) & "*") Then
                 match_found = True
                 Exit For
             End If
         End If
-        If IsObject(itm) And IsObject(element) Then
-            If itm Is element Then
+        If IsObject(itm) And IsObject(needle) Then
+            If itm Is needle Then
                 match_found = True
                 Exit For
             End If
         End If
-        If (Not IsObject(itm)) And (Not IsObject(element)) Then
-            If itm = element Then
+        If (Not IsObject(itm)) And (Not IsObject(needle)) Then
+            If itm = needle Then
                 match_found = True
                 Exit For
             End If
         End If
-        If ((IsObject(itm)) And (Not IsObject(element))) _
-            Or ((Not IsObject(itm)) And (IsObject(element))) Then
+        If ((IsObject(itm)) And (Not IsObject(needle))) _
+            Or ((Not IsObject(itm)) And (IsObject(needle))) Then
             match_found = False 'explicit, noting here that the search DataStructure might be composed of BOTH objects and non-objects,
                                                 '   and that the intent is to continue searching through the remainder of the for-loop
         End If
