@@ -1959,17 +1959,25 @@ On Error GoTo Resolve_clean_up
     rtn = False
     
     Select Case lowercase_operator
-        Case "="
+        Case "=" 'Keeping equal sign operator as values only since it feels wrong to say some object = another object; even if their sub-object values are the same, their references might point to different places in memory
             rtn = (left_side = right_side)
         Case "<>"
             rtn = (left_side <> right_side)
-        Case "is", "Is", "IS" 'Objects only
+        Case "is" 'Objects only <- REDACTED - it would be more convenient to abstract away the distinction between objects and values to allow for comparisons to read like "if count is 1 then..."
             If IsObject(left_side) And IsObject(right_side) Then
                 rtn = (left_side Is right_side)
+              ElseIf Not IsObject(left_side) And Not IsObject(right_side) Then
+                rtn = (left_side = right_side)
+              Else
+                rtn = False
             End If
         Case "is not"
             If IsObject(left_side) And IsObject(right_side) Then
                 rtn = (left_side Is Not right_side)
+              ElseIf Not IsObject(left_side) And Not IsObject(right_side) Then
+                rtn = (left_side <> right_side)
+              Else
+                rtn = False
             End If
         Case ">"
             If IsNumeric(left_side) And IsNumeric(right_side) Then
