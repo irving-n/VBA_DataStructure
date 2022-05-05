@@ -345,6 +345,92 @@ Copy_clean_up:
 End Function
 
 
+Public Function Range(ByVal start_value As Variant, ByVal end_value As Variant, Optional ByVal step As Variant = 1, Optional ByVal ovf_limit As Long = 500) As Variant
+On Error GoTo Range_clean_up
+
+    Dim ovf_buffer As Iterator, elem As Iterator, repit As Iterator
+    Dim col As Collection
+    Dim threshold_breached As Boolean
+    Dim altitude As Integer '0 = flat, -1 = descending, 1 = ascending
+    Dim rtn As Variant, num As Variant
+    Dim repeats As Long
+    Dim factor As Long, compare_factor As Long
+    Dim maxval As Variant, minval As Variant
+    
+    Set ovf_buffer = New Iterator
+    Set elem = New Iterator
+    Set repit = New Iterator
+    Set col = New Collection
+    rtn = Array()
+    
+    If (Not IsNumeric(start_value)) Or (Not IsNumeric(end_value)) Or (Not IsNumeric(step)) Then GoTo Range_clean_up
+    altitude = Switch(step = 0, 0, _
+                            end_value > start_value, 1, _
+                            end_value < start_value, -1, _
+                            end_value = start_value, 0) '0 = flat, -1 = descending, 1 = ascending
+                            
+    If CBool(altitude) Then
+        factor = 1
+        For Each num In Array(start_value, end_value, step)
+            If InStr(1, CStr(num), ".") > 0 Then
+                compare_factor = 10 ^ (Len(CStr(Abs(num))) - InStr(1, CStr(Abs(num)), "."))
+                If compare_factor > factor Then factor = compare_factor
+            End If
+        Next num
+        repeats = (Abs(((end_value * factor) - (start_value * factor)) / (step * factor))) + 1
+        
+        If ((end_value > start_value) And step < 0) _
+            Or ((end_value < start_value) And step > 0) _
+            Or (step = 0) Then
+                Debug.Print "Warning! Supplied parameters will not converge. Loop pre-emptively limited."
+        End If
+      Else
+        repeats = 1
+    End If
+    
+    ovf_buffer.stairs 1, 1
+    repit.stairs 1, 1
+    elem.stairs start_value, step_:=step
+    
+    Do:
+        col.Add elem.Next_
+'        threshold_breached = Choose(altitude + 2, _
+'                                                        (elem.value <= end_value), _
+'                                                        (elem.value = end_value), _
+'                                                        (elem.value >= end_value)) '+2 because choose is index base 1
+'        If elem.value > 0.8 And elem.value < 0.9 Then Stop
+        If VarType(elem.value) = vbDouble Then 'Fixes fuzzy floating point math
+            elem.value = CDbl(CStr(elem.value))
+        End If
+    Loop While (repit.Next_ < repeats) And (ovf_buffer.Next_ < ovf_limit)
+    
+    If ovf_buffer.value > ovf_limit Then
+        Debug.Print "Warning! Loop pre-emptively stopped at ovf_limit [" & ovf_limit & "]"
+    End If
+    
+    
+    With DS
+        maxval = .Maximum(Array(start_value, end_value))
+        minval = .Minimum(Array(start_value, end_value))
+        
+        rtn = .Convert(col, "Variant()")
+        rtn = .Filter(rtn, "<=", maxval)
+        rtn = .Filter(rtn, ">=", minval)
+    End With
+Range_clean_up:
+    If Err.Number <> 0 Then
+        Debug.Print "Class [" & TypeName(Me) & "] method [Range]"
+        Debug.Print Tab(10); "Error [" & Err.Number & "]: " & Err.description
+        Err.Clear
+    End If
+    
+    Set ovf_buffer = Nothing
+    Set elem = Nothing
+    Set col = Nothing
+    Range = rtn
+End Function
+
+
 Public Function Reverse(DataStructure As Variant, Optional ByVal propagate As Boolean = False) As Variant
     Dim typeNm As String
     Dim rtn As Variant, DataStructure_arr As Variant, col As Collection
