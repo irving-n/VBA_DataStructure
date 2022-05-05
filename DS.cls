@@ -12,6 +12,10 @@ Option Explicit
 '
 '   DataStructure: A value-variable or object-variable which holds a set of other values/objects
 
+Public Enum eDataStructureFilterMode
+    eFilterTrap
+    eFilterOut
+End Enum
 
 Private Sub Class_Initialize()
 End Sub
@@ -729,7 +733,9 @@ Fill_clean_up:
 End Function
 
 
-Public Function Filter(DataStructure As Variant, ByVal operator_expression As String, compare_against As Variant, ParamArray other_args() As Variant) As Variant
+Public Function Filter(DataStructure As Variant, ByVal operator_expression As String, compare_against As Variant, _
+                                Optional ByRef other_paired_expressions As Variant, _
+                                Optional ByVal FilterMode As eDataStructureFilterMode = eFilterTrap) As Variant
 On Error GoTo Filter_clean_up
     Dim COLander As Collection
     Dim arr As Variant, val As Variant, thing As Variant
@@ -741,8 +747,11 @@ On Error GoTo Filter_clean_up
       Else
         If TypeName(DataStructure) = "Dictionary" Then
             'more complicated
-          Else
+          ElseIf TypeName(DataStructure) = "Collection" Then
+
             arr = Me.Convert(DataStructure, "Variant()")
+          Else
+            arr = DataStructure
         End If
     End If
     
@@ -751,7 +760,7 @@ On Error GoTo Filter_clean_up
     operator_expression = Trim(operator_expression)
     If Me.Exists(LCase(operator_expression), Array("in", "is in", "not in", "is not in", "inside", "between", "out", "outside", "beyond")) Then
         If operand_isDataStructure Then
-            operand_isDataStructure = False 'Though technically an DataStructure operator, the intention is not to iterate on each individual element, but to check the operand as a whole
+            operand_isDataStructure = False 'Though technically a DataStructure operator, the intention is not to iterate on each individual element, but to check the operand as a whole
         End If
     End If
     
@@ -768,9 +777,34 @@ On Error GoTo Filter_clean_up
                 "in", "is in", "not in", "is not in", _
                 "inside", "between", _
                 "out", "outside", "beyond"
+            
             If operand_isDataStructure Then
                 'Check against many
+                If FilterMode = eFilterTrap Then
+                    'Keep going
+                  Else
+                    'Reverse all operands
+                    'TO DO!
+                End If
               Else
+                If FilterMode = eFilterTrap Then
+                    'Keep going
+                  ElseIf FilterMode = eFilterOut Then
+                    operator_expression = Match(LCase(operator_expression), "=", _
+                                                                                                        "=", "<>", _
+                                                                                                        "<>", "=", _
+                                                                                                        "is", "is not", _
+                                                                                                        "is not", "is", _
+                                                                                                        ">", "<=", _
+                                                                                                        "<=", ">", _
+                                                                                                        "<", ">=", _
+                                                                                                        ">=", "<", _
+                                                                                                        "like", "not like", _
+                                                                                                        "not like", "like", _
+                                                                                                        "in", "out", _
+                                                                                                        "out", "in")
+                    'Reverse
+                End If
                 For Each thing In DataStructure
                     If Resolve(thing, LCase(operator_expression), compare_against) Then
                         COLander.Add thing
@@ -808,7 +842,7 @@ On Error GoTo Filter_clean_up
     End If
     
 Filter_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "] in method [Filter] in class DS: " & Err.Description: Err.Clear
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "] in method [Filter] in class DS: " & Err.description: Err.Clear
     Set COLander = Nothing
     If IsObject(rtn) Then
         Set Filter = rtn
