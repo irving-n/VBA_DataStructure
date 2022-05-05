@@ -619,6 +619,84 @@ enumerate_clean_up:
 End Function
 
 
+Public Function Equivalent(DataStructure1 As Variant, DataStructure2 As Variant) As Boolean
+    Dim rtn As Boolean, typeNm As Variant, i As Variant
+    Dim thing As Variant, cnt As Variant, starting_idx As Variant, ending_idx As Variant
+On Error GoTo Equivalent_clean_up
+    Dim DataStructures As Variant
+    DataStructures = Array(DataStructure1, DataStructure2)
+    
+    For Each thing In DataStructures
+        If Not isDataStructure(thing) Then
+            rtn = False
+            GoTo Equivalent_clean_up
+        End If
+    Next thing
+    
+'Check if all things are DataStructures
+    If DataStructureCount(DataStructure1) <> DataStructureCount(DataStructure2) Then
+        rtn = False
+        GoTo Equivalent_clean_up
+      Else
+        cnt = DataStructureCount(DataStructure1)
+    End If
+
+'Check if same types
+    If TypeName(DataStructure1) <> TypeName(DataStructure2) Then
+        rtn = False
+        GoTo Equivalent_clean_up
+      Else
+        typeNm = TypeName(DataStructure1)
+    End If
+    
+'Check for the same elements
+    Select Case typeNm
+        Case "Dictionary"
+            If Not Equivalent(DataStructure1.Keys, DataStructure2.Keys) Then
+                rtn = False
+                GoTo Equivalent_clean_up
+            End If
+            
+            If Not Equivalent(DataStructure1.Items, DataStructure2.Items) Then
+                rtn = False
+                GoTo Equivalent_clean_up
+            End If
+        Case Else
+            
+            If TypeName(DataStructure1) = "Collection" Then
+                starting_idx = 1
+                ending_idx = cnt
+              Else
+                starting_idx = 0
+                ending_idx = cnt - 1
+            End If
+            
+            For i = starting_idx To ending_idx
+                If IsObject(DataStructure1(i)) Then
+                    If Not (DataStructure1(i) Is DataStructure2(i)) Then
+                        rtn = False
+                        GoTo Equivalent_clean_up
+                    End If
+                  Else
+                    If Not (DataStructure1(i) = DataStructure2(i)) Then
+                        rtn = False
+                        GoTo Equivalent_clean_up
+                    End If
+                End If
+            Next i
+    End Select
+    rtn = True
+
+Equivalent_clean_up:
+    If Err.Number <> 0 Then
+        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Err.Clear
+        rtn = False
+    End If
+    
+    Equivalent = rtn
+End Function
+
 Public Function fill(ByRef container As Variant, ByRef stuff As Variant, _
                             Optional ByVal extra_serving_size As Long = -1) As Variant
     Dim rtn As Variant
