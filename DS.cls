@@ -18,8 +18,12 @@ Public Enum eDataStructureFilterMode
 End Enum
 
 Private Sub Class_Initialize()
+    'Nothing to initialize - This is only an interface - type class; it doesn't store anything internally
 End Sub
 
+Private Sub Class_Terminate()
+    'Nothing to clean up
+End Sub
 
 'PROPERTIES
 
