@@ -1127,6 +1127,33 @@ Homogeneous_clean_up:
     Homogeneous = rtn
 End Function
 
+Public Function Map(ByRef source_values As Variant, ParamArray variables() As Variant) As Boolean
+On Error GoTo map_clean_up
+
+Dim rtn As Boolean
+Dim ref_var As Variant, i As Integer
+
+If Not IsArray(source_values) Then
+    For Each ref_var In variables
+        ref_var = source_values
+    Next ref_var
+    rtn = True
+  Else
+    If UBound(source_values) <> UBound(variables) Then Err.Raise 9
+    For i = 0 To UBound(source_values)
+        variables(i) = source_values(i)
+    Next i
+    rtn = True
+End If
+
+map_clean_up:
+If Err.Number <> 0 Then
+    Debug.Print "Error in mapping multiple values across array."
+    Debug.Print "Error [" & Err.Number & "]: " & Err.description
+End If
+
+Map = rtn
+End Function
 
 Public Function Merge(ParamArray DataStructures() As Variant) As Variant
     Dim merge_dictionary As Scripting.Dictionary
