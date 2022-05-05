@@ -1155,6 +1155,91 @@ End If
 Map = rtn
 End Function
 
+
+Public Function Match(things As Variant, ByVal operator As String, _
+                                    matched_value1 As Variant, output1 As Variant, _
+                                    matched_value2 As Variant, output2 As Variant, _
+                                    ParamArray matching_pairs() As Variant) As Variant
+'See Filter function for accepted operators
+On Error GoTo Match_clean_up
+    Dim match_map As Scripting.Dictionary
+    Dim col As Collection
+    Dim match_found As Boolean, pair As Variant, thing As Variant
+    Dim i As Integer
+    Set match_map = New Scripting.Dictionary
+    
+    
+    match_map.Add Key:=matched_value1, Item:=output1
+    If Not match_map.Exists(matched_value2) Then
+        match_map.Add Key:=matched_value2, Item:=output2
+    End If
+    
+    If UBound(matching_pairs) > 0 Then
+        i = 0
+        Do While i < UBound(matching_pairs)
+            On Error Resume Next
+            If Not match_map.Exists(matching_pairs(i)) Then
+                match_map.Add Key:=matching_pairs(i), Item:=matching_pairs(i + 1)
+            End If
+            On Error GoTo Match_clean_up
+            i = i + 2
+        Loop
+    End If
+    Set col = New Collection
+    
+    If isDataStructure(things, accept_typename:=False) Then
+
+        For Each thing In things
+            match_found = False
+            For Each pair In Zip(match_map)
+                If Resolve(thing, operator, pair(0)) Then 'See Filter function for accepted operators
+                    match_found = True
+                    col.Add pair(1)
+                End If
+                If match_found Then Exit For
+            Next pair
+            If Not match_found Then col.Add Empty
+        Next thing
+        
+      Else
+        match_found = False
+        For Each pair In Zip(match_map)
+            If Resolve(things, operator, pair(0)) Then 'See Filter function for accepted operators
+                match_found = True
+                col.Add pair(1)
+            End If
+            If match_found Then Exit For
+        Next pair
+    End If
+    
+Match_clean_up:
+    If Err.Number <> 0 Then
+        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print "Class [" & TypeName(Me) & "] - Method [Match]"
+        Err.Clear
+    End If
+On Error Resume Next
+    If col.Count = 1 Then
+        If IsObject(col(1)) Then
+            Set Match = col(1)
+          Else
+            Match = col(1)
+        End If
+      ElseIf col.Count > 1 Then
+        Select Case TypeName(things)
+            Case "Collection"
+                Set Match = col
+            Case "Dictionary"
+                'uh oh - not written yet
+            Case "Variant()"
+                Match = Convert(col, "Variant()")
+            Case Else
+                Match = Convert(col, TypeName(things))
+        End Select
+    End If
+End Function
+
+
 Public Function Merge(ParamArray DataStructures() As Variant) As Variant
     Dim merge_dictionary As Scripting.Dictionary
     Dim submerge As Variant, submerge_arr As Variant, comp As Variant
