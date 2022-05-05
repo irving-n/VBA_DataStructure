@@ -74,7 +74,7 @@ On Error GoTo Append_clean_up
     
 Append_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.description
         Err.Clear
     End If
     
@@ -173,7 +173,7 @@ Public Function Apply(DataStructure_arr As Variant, funcName As String, elem_arg
                 End If
             Next val
             funcString = funcString & Join(CollectionToArray(funcPart_col), ", ") & ")"
-            compile_col.Add Item:=Application.Evaluate(funcString)
+            compile_col.Add Item:=Eval(funcString)
             Err.Clear
         End If
         On Error GoTo 0
@@ -256,7 +256,7 @@ Public Function Convert(DataStructure As Variant, Optional ByVal OutputType As S
     End Select
 
 Convert_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "] in method [Convert] in class DS: " & Err.Description: Err.Clear
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "] in method [Convert] in class DS: " & Err.description: Err.Clear
     
     Set col = Nothing
     
@@ -340,7 +340,7 @@ Public Function Copy(DataStructure As Variant, Optional ByVal failOnNestedObject
 Copy_clean_up:
 
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.description
         Err.Clear
     End If
     
@@ -356,7 +356,7 @@ End Function
 Public Function Range(ByVal start_value As Variant, ByVal end_value As Variant, Optional ByVal step As Variant = 1, Optional ByVal ovf_limit As Long = 500) As Variant
 On Error GoTo Range_clean_up
 
-    Dim ovf_buffer As Iterator, elem As Iterator, repit As Iterator
+    Dim ovf_buffer As Long, elem As Variant, repit As Long
     Dim col As Collection
     Dim threshold_breached As Boolean
     Dim altitude As Integer '0 = flat, -1 = descending, 1 = ascending
@@ -364,10 +364,7 @@ On Error GoTo Range_clean_up
     Dim repeats As Long
     Dim factor As Long, compare_factor As Long
     Dim maxval As Variant, minval As Variant
-    
-    Set ovf_buffer = New Iterator
-    Set elem = New Iterator
-    Set repit = New Iterator
+
     Set col = New Collection
     rtn = Array()
     
@@ -396,23 +393,23 @@ On Error GoTo Range_clean_up
         repeats = 1
     End If
     
-    ovf_buffer.stairs 1, 1
-    repit.stairs 1, 1
-    elem.stairs start_value, step_:=step
-    
+    ovf_buffer = 0
+    elem = start_value
     Do:
-        col.Add elem.Next_
-'        threshold_breached = Choose(altitude + 2, _
-'                                                        (elem.value <= end_value), _
-'                                                        (elem.value = end_value), _
-'                                                        (elem.value >= end_value)) '+2 because choose is index base 1
-'        If elem.value > 0.8 And elem.value < 0.9 Then Stop
-        If VarType(elem.value) = vbDouble Then 'Fixes fuzzy floating point math
-            elem.value = CDbl(CStr(elem.value))
+        col.Add elem
+        elem = elem + step
+
+        If VarType(elem) = vbDouble Then 'Fixes fuzzy floating point math
+            elem = CDbl(CStr(elem))
         End If
-    Loop While (repit.Next_ < repeats) And (ovf_buffer.Next_ < ovf_limit)
+        threshold_breached = Choose(altitude + 2, _
+                                                        (elem < end_value), _
+                                                        (elem = end_value), _
+                                                        (elem > end_value)) '+2 because choose is index base 1
+        ovf_buffer = ovf_buffer + 1
+    Loop While (Not threshold_breached) And (ovf_buffer < ovf_limit) '(elem <= end_value) And (ovf_buffer < ovf_limit)
     
-    If ovf_buffer.value > ovf_limit Then
+    If ovf_buffer > ovf_limit Then
         Debug.Print "Warning! Loop pre-emptively stopped at ovf_limit [" & ovf_limit & "]"
     End If
     
@@ -431,10 +428,7 @@ Range_clean_up:
         Debug.Print Tab(10); "Error [" & Err.Number & "]: " & Err.description
         Err.Clear
     End If
-    
-    Set ovf_buffer = Nothing
-    Set elem = Nothing
-    Set col = Nothing
+
     Range = rtn
 End Function
 
@@ -563,7 +557,7 @@ On Error GoTo Exists_clean_up
     Next itm
     
 Exists_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "] in method [Exists] in class DS: " & Err.Description: Err.Clear
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "] in method [Exists] in class DS: " & Err.description: Err.Clear
     Set col = Nothing
     
     Exists = match_found
@@ -611,7 +605,7 @@ On Error GoTo enumerate_clean_up
 
 enumerate_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.description
         Debug.Print "   Context: " & "Function [enumerate] "
         Err.Clear
         rtn = Array()
@@ -793,7 +787,7 @@ On Error GoTo Fill_clean_up
     
 Fill_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.description
         rtn = False
       Else
         rtn = True
@@ -1059,7 +1053,7 @@ On Error GoTo Intersection_clean_up
        
 Intersection_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.description
         Err.Clear
     End If
     
@@ -1120,7 +1114,7 @@ On Error GoTo Homogeneous_clean_up
 
 Homogeneous_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.description
         rtn = False
         Err.Clear
     End If
@@ -1321,6 +1315,7 @@ Public Function Minimum(DataStructure As Variant, Optional ByVal string_support 
             DataStructure_copy = DataStructure
     End Select
     
+    numeric_composition = True
     For Each val In DataStructure_copy
         If Not IsNumeric(val) Then
             numeric_composition = False
@@ -1338,7 +1333,7 @@ Public Function Minimum(DataStructure As Variant, Optional ByVal string_support 
     End If
     
 Minimum_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.Description: Err.Clear
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.description: Err.Clear
     Set col = Nothing
     Minimum = lowest
 End Function
@@ -1365,6 +1360,7 @@ Public Function Maximum(DataStructure As Variant) As Variant
             DataStructure_copy = DataStructure
     End Select
     
+    numeric_composition = True
     For Each val In DataStructure_copy
         If Not IsNumeric(val) Then
             numeric_composition = False
@@ -1382,7 +1378,7 @@ Public Function Maximum(DataStructure As Variant) As Variant
     End If
     
 Maximum_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.Description: Err.Clear
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.description: Err.Clear
     Set col = Nothing
     Maximum = highest
 
@@ -1485,7 +1481,7 @@ Public Function Pop(ByRef DataStructure As Variant, Optional ByVal Index As Long
     
 Pop_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.description
         Err.Clear
     End If
     
@@ -1641,7 +1637,7 @@ Public Function Zip(ParamArray DataStructures() As Variant) As Variant
         rtn(j) = CollectionToArray(tcol)
     Next j
 Zip_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.Description
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.description
     Zip = rtn
 End Function
 
@@ -1799,7 +1795,7 @@ Private Function ArrayToDictionary(DataStructure As Variant, Optional ByVal popu
     End If '
 
 ArrayToDictionary_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.Description
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.description
     
     Set ArrayToDictionary = rtn_dictionary
     
