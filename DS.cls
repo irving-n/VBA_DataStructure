@@ -150,12 +150,12 @@ Public Function Apply(DataStructure_arr As Variant, funcName As String, elem_arg
         
         On Error Resume Next
         Select Case total_args_count  ' warning - ugly; it needs to be like this because the arguments supplied can't be filled with a default Missing reference
-            Case 1: compile_col.Add Item:=Application.run(funcName, args_xfer(0))
-            Case 2: compile_col.Add Item:=Application.run(funcName, args_xfer(0), args_xfer(1))
-            Case 3: compile_col.Add Item:=Application.run(funcName, args_xfer(0), args_xfer(1), args_xfer(2))
-            Case 4: compile_col.Add Item:=Application.run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3))
-            Case 5: compile_col.Add Item:=Application.run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3), args_xfer(4))
-            Case 6: compile_col.Add Item:=Application.run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3), args_xfer(4), args_xfer(5))
+            Case 1: compile_col.Add Item:=Application.Run(funcName, args_xfer(0))
+            Case 2: compile_col.Add Item:=Application.Run(funcName, args_xfer(0), args_xfer(1))
+            Case 3: compile_col.Add Item:=Application.Run(funcName, args_xfer(0), args_xfer(1), args_xfer(2))
+            Case 4: compile_col.Add Item:=Application.Run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3))
+            Case 5: compile_col.Add Item:=Application.Run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3), args_xfer(4))
+            Case 6: compile_col.Add Item:=Application.Run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3), args_xfer(4), args_xfer(5))
             Case Else: Debug.Print "Please edit code to add more arguments, follow the same pattern and it should work."
         End Select
         If Err.Number <> 0 Then
@@ -928,56 +928,110 @@ Filter_clean_up:
 End Function
 
 
-Public Function Flatten(embedded_DataStructure As Variant, Optional ByVal OutputType As String = "") As Variant
-    Dim recursive_col As Collection
+'Public Function Old_Flatten(embedded_DataStructure As Variant, Optional ByVal OutputType As String = "") As Variant
+'    'Flattens to an array
+'    Dim recursive_col As Collection
+'    Dim rtn As Variant
+'    Dim thing As Variant, validated_DataStructure As Variant
+'    Dim rtn_type As String
+'
+'    If isDataStructure(embedded_DataStructure) Then
+'        If isDataStructure(OutputType) Then
+'            rtn_type = OutputType
+'          Else
+'            rtn_type = TypeName(embedded_DataStructure)
+'        End If
+'      Else
+'        Set Old_Flatten = Nothing
+'        Exit Function
+'    End If
+'
+'    Set recursive_col = New Collection
+'
+'    If TypeName(embedded_DataStructure) = "Dictionary" Then
+'        validated_DataStructure = Zip(embedded_DataStructure)
+'      Else
+'        On Error Resume Next
+'        validated_DataStructure = embedded_DataStructure
+'        If Err.Number <> 0 Then
+'            Err.Clear
+'            Set validated_DataStructure = embedded_DataStructure
+'        End If
+'    End If
+'
+'    For Each thing In validated_DataStructure
+'        If isDataStructure(thing) Then
+'            Set recursive_col = Merge(recursive_col, Old_Flatten(thing))
+'          Else
+'            recursive_col.Add Item:=thing
+'        End If
+'    Next thing
+'
+'    If TypeName(recursive_col) <> rtn_type Then
+'        On Error Resume Next
+'        Set rtn = Convert(recursive_col, rtn_type)
+'        If Err.Number <> 0 Then
+'            Err.Clear
+'            rtn = Convert(recursive_col, rtn_type)
+'        End If
+'      Else
+'        Set rtn = Convert(recursive_col, rtn_type)
+'    End If
+'
+'End Function
+
+
+Public Function Flatten(DataStructure As Variant) As Variant 'Returns a flattened array
+'Note that keys belonging to collection objects cannot be preserved
     Dim rtn As Variant
-    Dim thing As Variant, validated_DataStructure As Variant
-    Dim rtn_type As String
+    Dim nested As Variant, element As Variant, flatten_queue As Variant
+    Dim flattened_in_progress As Collection
     
-    If isDataStructure(embedded_DataStructure) Then
-        If isDataStructure(OutputType) Then
-            rtn_type = OutputType
+    If Not isDataStructure(DataStructure) Then
+        rtn = Array()
+        GoTo Flatten_clean_up
+    End If
+    
+    Set flattened_in_progress = New Collection
+    
+    Select Case TypeName(DataStructure)
+        Case "Dictionary"
+            flatten_queue = DS.Zip(DataStructure)
+        Case "Collection"
+            flatten_queue = DS.Convert(DataStructure, "Variant()")
+        Case "Variant()"
+            flatten_queue = DataStructure
+        Case Else
+            If IsArray(DataStructure) Then 'Integer(), String(), Long(), etc... are also possible
+                flatten_queue = DataStructure
+              Else
+                flatten_queue = Array(DataStructure) 'Just append the single element
+            End If
+    End Select
+    
+    For Each element In flatten_queue
+        If isDataStructure(element) Then
+            For Each nested In DS.Flatten(element)
+                flattened_in_progress.Add nested
+            Next nested
           Else
-            rtn_type = TypeName(embedded_DataStructure)
+            flattened_in_progress.Add element
         End If
-      Else
-        Set Flatten = Nothing
-        Exit Function
+    Next element
+    
+    rtn = DS.Convert(flattened_in_progress, "Variant()")
+    
+Flatten_clean_up:
+    If Err.Number <> 0 Then
+        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print "Class [" & TypeName(Me) & "] - Method [" & "Flatten" & "]"
+        Err.Clear
+        rtn = Array()
     End If
-    
-    Set recursive_col = New Collection
-    
-    If TypeName(embedded_DataStructure) = "Dictionary" Then
-        validated_DataStructure = Zip(embedded_DataStructure)
-      Else
-        On Error Resume Next
-        validated_DataStructure = embedded_DataStructure
-        If Err.Number <> 0 Then
-            Err.Clear
-            Set validated_DataStructure = embedded_DataStructure
-        End If
-    End If
-    
-    For Each thing In validated_DataStructure
-        If isDataStructure(thing) Then
-            Set recursive_col = Merge(recursive_col, Flatten(thing))
-          Else
-            recursive_col.Add Item:=thing
-        End If
-    Next thing
-    
-    If TypeName(recursive_col) <> rtn_type Then
-        On Error Resume Next
-        Set rtn = Convert(recursive_col, rtn_type)
-        If Err.Number <> 0 Then
-            Err.Clear
-            rtn = Convert(recursive_col, rtn_type)
-        End If
-      Else
-        Set rtn = Convert(recursive_col, rtn_type)
-    End If
-    
+
+    Flatten = rtn
 End Function
+
 
 Public Function GuiltyByAssociation(associated_DataStructure As Variant, DataStructure As Variant, ByVal operator_expression As String, compare_against As Variant, ParamArray other_args() As Variant) As Variant
 
@@ -1021,7 +1075,7 @@ On Error GoTo Intersection_clean_up
         Set main_structure = master_collection(i)
         For Each thing In main_structure
             'if thing exists in each one (use the resolve method) then add it to the yes pile, otherwise add it to the no pile
-            
+                
             'then remove the thing from all structures in master_collection
             For j = (i + 1) To master_collection.Count
                 
@@ -1503,7 +1557,7 @@ Public Function Postfixed(postfixables As Variant, ByVal postfix As String, Opti
       Else
         Postfixed = outerfix(postfixables, _
                                     attachment:=postfix, _
-                                    prefix:=True, _
+                                    prefix:=False, _
                                     apply_to_dict_keys:=apply_to_dict_keys)
     End If
 End Function
@@ -1912,7 +1966,7 @@ On Error GoTo outerfix_clean_up
         col.Add tmpFixed
     Next elem
     
-    Set output = Copy(stringables)
+    If IsObject(stringables) Then Set output = Copy(stringables) Else output = Copy(stringables)
     
     Select Case TypeName(output)
         Case "Dictionary" 'Copy stringables so that the values in the reference are unchanged
