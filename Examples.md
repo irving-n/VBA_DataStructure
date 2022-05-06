@@ -1,3 +1,8 @@
+<style>
+H4{color:DarkOrange !important;}
+H5{color:DarkOrchid !important;}
+</style>
+
 # Examples
 ## Notes 
 
@@ -45,22 +50,36 @@ More detail on the analogue in both **Python** & **VBA** for the above can be fo
 ### Exists
 ***
 ### Fill
+
+#### a
+##### b
 ```VB
+' Create a new array & fill with 5 instances of Integer value 1
 Dim arr As Variant
 arr = DS.Fill(5, 1)
 ```
-> arr:
-> (1, 1, 1, 1, 1)
+> [1, 1, 1, 1, 1]
 ```VB
+' Fill a fixed-size array of upper bound 3 with instances of Integer value 5
 Redim arr(3)
-DS.Fill(arr, 5)
+DS.Fill arr, 5
 ```
-> arr:
-> (5, 5, 5, 5)
+> [5, 5, 5, 5]
 ***
 ### Filter
 ***
 ### Flatten
+```VB
+Dim nested As Variant, flattened As Variant
+nested = Array(1, 2, 3, _
+                        Array(4, 5, 6), _
+                        Array( _
+                                Array(7, 8), _
+                                9, _
+                                Array(10)))
+flattened = DS.Flatten(nested)
+```
+> [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 ***
 ### Homogeneous
 ***
