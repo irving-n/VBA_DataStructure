@@ -29,25 +29,211 @@ More detail on the analogue in both **Python** & **VBA** for the above can be fo
 ## Append
 >Adds an element to the end of any of the supported data structures
 ```VB
+Dim todo_list As Variant
+Dim task As Variant, task_category As String, task_description As String
 
+Dim housework As Collection
+Set housework = New Collection
+
+Dim errands As Scripting.Dictionary
+Set errands = New Scripting.Dictionary
+
+todo_list = Array("Clean:Living Room", _
+                    "Clean:Kitchen", _
+                    "Clean:Room", _
+                    "Repair:Leaking Faucet", _ 
+                    "Buy:Shoe Rack;1", _
+                    "Clean:Window Sills", _
+                    "Cook:Lasagna", _
+                    "Buy:Detergent;1 Bottle", _
+                    "Buy:Milk;2 Cartons", _
+                    "Buy:Wool Socks;4 Pairs", _
+                    "Return:Library Books;3", _
+                    "Return:Faulty Speakers;1")
+For Each task In todo_list
+    DS.Map(Split(task, ":"), task_category, task_description) ' See Method: Map
+    Select Case task_category
+        Case "Clean", "Cook", "Repair"
+            DS.Append housework, task_description
+        Case "Buy", "Return"
+            DS.Append errands, Split(task_description, ";")
+    End Select
+Next task
+```
+### **housework**
+```Python
+('Living Room', 'Kitchen', 'Room', 'Leaking Faucet', 'Window Sills', 'Lasagna')
+```
+### **errands**
+```Python
+{'Shoe Rack': '1', 'Detergent': '1 Bottle', 'Milk': '2 Cartons', 'Wool Socks': '4 Pairs', 'Library Books': '3', 'Faulty Speakers': '1'}
 ```
 #### - Adds a single element to the supplied data structure
+
+<br/>
+
 ***
+
 ## Apply
+#### Parameters:
+
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| DataStructure | Variant(), Collection, Dictionary | The data structure containing elements to be modified |
+| FuncName | String | The name of the function being applied |
+| elem_pos_idx | Integer | The index position of the argument being supplied on each loop through the data structure |
+| other_args | (ParamArray) Variant() | Any of the other arguments required by the function in order |
+
+#### Returns:
+> Return
+```VB
+' Comment
+' This function shifts letters
+Function letter_shift(ByVal char As String) As String
+    letter_shift = Asc(char)
+End Function
+
+Dim arr As Variant
+Dim obfuscated_words As Variant
+Dim quote As String
+quote = "All that is gold does not glitter, " & _
+        "Not all those who wander are lost"
+
+```
+> Result
 #### - Applies the provided function to all elements in the supplied data structure; returns 
+<br/>
+
 ***
+
 ## CharacterArray
+#### Parameters:
+
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
+
+<br/>
+
 ***
 ## Convert
+#### Parameters:
+
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
+
+<br/>
+
 ***
 ## Copy
+#### Parameters:
+
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
+
+<br/>
+
 ***
 ## Enumerate
+#### Parameters:
+
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
+
+<br/>
+
 ***
 ## Equivalent
+#### Parameters:
+
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
+
+<br/>
+
 ***
+
 ## Exists
+#### Parameters:
+
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
+
+<br/>
+
 ***
+
 ## Fill
 #### Parameters:
 
@@ -79,6 +265,9 @@ Redim arr(3)
 DS.Fill arr, 5
 ```
 > [5, 5, 5, 5]
+
+<br/>
+
 ***
 ## Filter
 
@@ -98,6 +287,9 @@ DS.Fill arr, 5
 Dim code
 ```
 > Result
+
+<br/>
+
 ***
 ## Flatten
 | Variable | Data Type(s) | Description |
@@ -121,6 +313,9 @@ nested = Array(1, 2, 3, _
 flattened = DS.Flatten(nested)
 ```
 > [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+<br/>
+
 ***
 ## Homogeneous
 | Variable | Data Type(s) | Description |
@@ -137,6 +332,9 @@ flattened = DS.Flatten(nested)
 Dim code
 ```
 > Result
+
+<br/>
+
 ***
 ## Intersection
 | Variable | Data Type(s) | Description |
@@ -153,6 +351,9 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
 ***
 ## Map
 | Variable | Data Type(s) | Description |
@@ -169,6 +370,9 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
 ***
 ## Match
 | Variable | Data Type(s) | Description |
@@ -185,6 +389,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## Maximum
 | Variable | Data Type(s) | Description |
@@ -201,6 +409,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## Merge
 | Variable | Data Type(s) | Description |
@@ -217,6 +429,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## Minimum
 | Variable | Data Type(s) | Description |
@@ -233,6 +449,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## Ones
 | Variable | Data Type(s) | Description |
@@ -249,6 +469,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## Outersection
 | Variable | Data Type(s) | Description |
@@ -265,6 +489,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## Pop
 | Variable | Data Type(s) | Description |
@@ -281,6 +509,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## PostFixed
 | Variable | Data Type(s) | Description |
@@ -297,6 +529,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## PreFixed
 | Variable | Data Type(s) | Description |
@@ -313,6 +549,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## Range
 | Variable | Data Type(s) | Description |
@@ -329,6 +569,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## Remove
 | Variable | Data Type(s) | Description |
@@ -345,6 +589,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## Resolve
 | Variable | Data Type(s) | Description |
@@ -361,6 +609,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## Reverse
 | Variable | Data Type(s) | Description |
@@ -377,6 +629,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## Transpose
 | Variable | Data Type(s) | Description |
@@ -393,6 +649,10 @@ Dim code
 Dim code
 ```
 > Result
+
+<br/>
+
+
 ***
 ## Zip
 | Variable | Data Type(s) | Description |
@@ -410,7 +670,7 @@ Dim code
 ```
 > Result
 
-
+<br/><br/><br/>
 
 # Appendix
 ## Analagous Shorthand Python-VBA
