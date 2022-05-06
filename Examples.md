@@ -1,10 +1,9 @@
 <style>
 H4{color:DarkOrange !important;}
-H5{color:DarkOrchid !important;}
 </style>
 
-# Examples
-## Notes 
+# **Examples**
+## **Notes**
 
 
 
@@ -26,33 +25,48 @@ More detail on the analogue in both **Python** & **VBA** for the above can be fo
 ***
 <br/>
 
-## Methods
-### Append
+## **Methods**
+## Append
 >Adds an element to the end of any of the supported data structures
 ```VB
 
 ```
 #### - Adds a single element to the supplied data structure
 ***
-### Apply
+## Apply
 #### - Applies the provided function to all elements in the supplied data structure; returns 
 ***
-### CharacterArray
+## CharacterArray
 ***
-### Convert
+## Convert
 ***
-### Copy
+## Copy
 ***
-### Enumerate
+## Enumerate
 ***
-### Equivalent
+## Equivalent
 ***
-### Exists
+## Exists
 ***
-### Fill
+## Fill
+#### Parameters:
 
-#### a
-##### b
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| container | Variant(), Collection, Dictionary, Integer | The data structure into which elements will be inserted |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+- **container**: Variant() | Collection | Dictionary | Integer
+    - The data structure into which elements will be filled
+    - OR: The number of elements in the newly created array
+- **stuff**: Variant
+    - The _"filling"_
+- **extra_serving_size**: Integer (Optional)
+#### Returns:
+> Data structure with type corresponding to the provided data structure, defaulting to Variant() if no data structure is given 
+##### 
 ```VB
 ' Create a new array & fill with 5 instances of Integer value 1
 Dim arr As Variant
@@ -66,9 +80,36 @@ DS.Fill arr, 5
 ```
 > [5, 5, 5, 5]
 ***
-### Filter
+## Filter
+
+#### Parameters:
+
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Flatten
+## Flatten
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+
 ```VB
 Dim nested As Variant, flattened As Variant
 nested = Array(1, 2, 3, _
@@ -81,41 +122,293 @@ flattened = DS.Flatten(nested)
 ```
 > [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 ***
-### Homogeneous
+## Homogeneous
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Intersection
+## Intersection
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Map
+## Map
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Match
+## Match
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Maximum
+## Maximum
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Merge
+## Merge
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Minimum
+## Minimum
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Ones
+## Ones
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Outersection
+## Outersection
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Pop
+## Pop
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### PostFixed
+## PostFixed
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### PreFixed
+## PreFixed
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Range
+## Range
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Remove
+## Remove
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Resolve
+## Resolve
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Reverse
+## Reverse
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Transpose
+## Transpose
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 ***
-### Zip
+## Zip
+| Variable | Data Type(s) | Description |
+| :---: |:--- |:--- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+| --- | --- | --- |
+
+#### Returns:
+> Return
+```VB
+' Comment
+Dim code
+```
+> Result
 
 
 
