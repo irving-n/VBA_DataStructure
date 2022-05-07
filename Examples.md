@@ -79,18 +79,17 @@ Next task
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
-| DataStructure | Variant(), Collection, Dictionary | The data structure containing elements to be modified |
+| DataStructure_Arr | Variant() | The data structure containing elements to be modified |
 | func_name | String | The name of the function being applied |
 | arg_pos | Integer | The index position of the argument being supplied on each loop through the data structure |
 | other_args | (ParamArray) Variant() | Any of the other arguments required by the function in order |
 
 #### Returns:
-##### Example 1:
+##### Example 1: [Vowel Shifting]
 > Return
 
 >> Given the following user defined function:
 ```VB
-' Comment
 ' This function shifts vowels by 1, relative to their ASC representation
 Function shift_vowels(ByVal char As String) As String
     shift_vowels = IIf(InStr("aeiou", LCase(char)) > 0, _
@@ -106,22 +105,34 @@ Dim quote As String
 quote = "All that is gold does not glitter, " & _
         "Not all those who wander are lost"
 arr = DS.CharacterArray(quote)       '['A', 'l', 'l', ' ', 't', 'h', 'a', 't', ... , 'l', 'o', 's', 't']
-obfuscated_text = DS.Apply(arr, "letter_shift", 0)
+obfuscated_text = Join(DS.Apply(arr, "letter_shift", 0), "")
 ```
 > All vowels shifted:
->> Bll thbt jsBll thbt js gpld dpfs npt gljttfr, Npt bll thpsf whp wbndfr brf lpst
- gpld dpfs npt gljttfr, Npt bll thpsf whp wbndfr brf lpst
+>> Bll thbt js gpld dpfs npt gljttfr, Npt bll thpsf whp wbndfr brf lpst
 
 <br/>
 
- ##### Example 2:
+ ##### Example 2: [Simple Math]
 
 ```VB
-Dim arr As Variant
-Dim 
+Dim numbers As Variant
+Dim output As Variant
+arr = Array(2, 4, 6, 8)
+output = DS.Apply(arr, "2*", 0)
 ```
 
-#### - Applies the provided function to all elements in the supplied data structure; returns 
+> All elements doubled:
+```Python
+[4, 8, 12, 16]
+```
+
+#### Please note that the feature is fairly limited at the moment since it makes use of the restrictive Eval (Access) / Application.Evaluate (Excel) function
+- The mathematical operator and any numbers must come before the element in the array
+- The example above creates an expression of the form:
+```VB
+Application.Evaluate("2*" & "(" & element & ")") 'Where [element] is the control in the for-each-loop governing the output array sourced from the input data structure
+```
+
 <br/>
 
 ***
@@ -131,18 +142,23 @@ Dim
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
-| --- | --- | --- |
+| text | String | The text that needs to be split into separate characters |
 | --- | --- | --- |
 | --- | --- | --- |
 | --- | --- | --- |
 
 #### Returns:
-> Return
+> An array with UBound = len(text) - 1, having each character of the provide String as a separate element
 ```VB
 ' Comment
-Dim code
+Dim book_title as String
+Dim all_characters as Variant
+book_title = "La Belle Sauvage"
+all_characters = DS.CharacterArray(book_title)
 ```
-> Result
+```Python
+['L', 'a', ' ', 'B', 'e', 'l', 'l', 'e', ' ', 'S', 'a', 'u', 'v', 'a', 'g', 'e']
+```
 
 <br/>
 
@@ -152,7 +168,7 @@ Dim code
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
-| --- | --- | --- |
+| DataStructure | Variant(), Collection, Dictionary | --- |
 | --- | --- | --- |
 | --- | --- | --- |
 | --- | --- | --- |
