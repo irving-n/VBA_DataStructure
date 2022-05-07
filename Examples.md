@@ -80,27 +80,47 @@ Next task
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | DataStructure | Variant(), Collection, Dictionary | The data structure containing elements to be modified |
-| FuncName | String | The name of the function being applied |
-| elem_pos_idx | Integer | The index position of the argument being supplied on each loop through the data structure |
+| func_name | String | The name of the function being applied |
+| arg_pos | Integer | The index position of the argument being supplied on each loop through the data structure |
 | other_args | (ParamArray) Variant() | Any of the other arguments required by the function in order |
 
 #### Returns:
+##### Example 1:
 > Return
+
+>> Given the following user defined function:
 ```VB
 ' Comment
-' This function shifts letters
-Function letter_shift(ByVal char As String) As String
-    letter_shift = Asc(char)
+' This function shifts vowels by 1, relative to their ASC representation
+Function shift_vowels(ByVal char As String) As String
+    shift_vowels = IIf(InStr("aeiou", LCase(char)) > 0, _
+                            Chr(Asc(char) + 1), _
+                            char)
 End Function
+```
 
+```VB
 Dim arr As Variant
-Dim obfuscated_words As Variant
+Dim obfuscated_text As Variant
 Dim quote As String
 quote = "All that is gold does not glitter, " & _
         "Not all those who wander are lost"
-
+arr = DS.CharacterArray(quote)       '['A', 'l', 'l', ' ', 't', 'h', 'a', 't', ... , 'l', 'o', 's', 't']
+obfuscated_text = DS.Apply(arr, "letter_shift", 0)
 ```
-> Result
+> All vowels shifted:
+>> Bll thbt jsBll thbt js gpld dpfs npt gljttfr, Npt bll thpsf whp wbndfr brf lpst
+ gpld dpfs npt gljttfr, Npt bll thpsf whp wbndfr brf lpst
+
+<br/>
+
+ ##### Example 2:
+
+```VB
+Dim arr As Variant
+Dim 
+```
+
 #### - Applies the provided function to all elements in the supplied data structure; returns 
 <br/>
 
