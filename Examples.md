@@ -169,15 +169,22 @@ all_characters = DS.CharacterArray(book_title)
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | DataStructure | Variant(), Collection, Dictionary | --- |
-| --- | --- | --- |
-| --- | --- | --- |
+| OutputType | String | The name of the data type |
+| ConversionOptions | Variant | No current implementation |
 | --- | --- | --- |
 
 #### Returns:
-> Return
+> The data structure converted into whatever format was specified
+#### Example 1: dictionary to array
 ```VB
 ' Comment
-Dim code
+Dim dict As Scripting.Dictionary
+Dim dkeys As Variant, ditems As Variant, i As Integer
+Dim output As Variant
+
+dkeys = Array(")
+
+
 ```
 > Result
 
