@@ -1,7 +1,3 @@
-<style>
-H4{color:DarkOrange !important;}
-</style>
-
 # **Examples**
 ## **Notes**
 
@@ -294,10 +290,9 @@ For Each dataset In DS.Zip(prop_dictionary)
     max_force = force_at_yield(md("yield strength"), ArMoIn, y_neut, l1)
     max_defl = deflection_at_yield(max_force, l1, md("modulus of elasticity"), ArMoIn)
     
-'    Debug.Print "Analysis Results for .25x.25 in^2 [" & mat_name & "] square bar, length: " & l1 & "in"
     Debug.Print "Material: [" & mat_name & "]"
     Debug.Print Tab(10); "Yield occurs under [" & Format(CStr(max_force), "#.##") & "] lbs after deflecting [" & Format(CStr(max_defl), "#.###") & "] inches."
-'    Debug.Print Tab(15); "At which point, it will have deflected [" & Format(CStr(max_defl), "#.###") & "] inches."
+
     Debug.Print Tab(5); "Price: " & Format(CStr(md("price") * (l1 / 12)), "$#.##")
     Debug.Print
 Next dataset
@@ -350,20 +345,76 @@ Next dataset
 ## Copy
 #### Parameters:
 
+#### N.b.:
+* The keys of a collection must be supplied as an optional argument *(implementation in progress)*; on their own, the keys of a collection object are irretrievable.
+* Nested objects will only be copied by reference.
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
-| --- | --- | --- |
-| --- | --- | --- |
-| --- | --- | --- |
+| DataStructure | Variant(), Collection, Dictionary | The data structure to copy |
+| failOnNestedObjects | Boolean | Pass parameter as True in order to cause the method to return an empty Variant/Collection/Dictionary instead of returning nested references; this will prevent the nested objects from being mutated |
+| args | (optional) Variant | *Implementation in progress* - keys if attempting to copy a collection |
 | --- | --- | --- |
 
 #### Returns:
-> Return
+> A newly created array/collection/dictionary containing the same data from the supplied data structure. Collection keys will not be preserved.
 ```VB
 ' Comment
-Dim code
+Dim arr As Variant
+Dim col As Collection
+Dim dict As Scripting.Dictionary
+
+Dim new_arr As Variant
+Dim new_col As Collection
+Dim new_dict As Scripting.Dictionary
+
+arr = Array(False, 1, 2, 3, "four", "five")
+new_arr = DS.Copy(arr)
+
+Debug.Print Join(DS.Apply(arr, "CStr", 0), ", ")
+' 
+Debug.Print Join(DS.Apply(new_arr, "CStr", 0), ", ")
+
+
+Set col = New Collection
+col.add item:="Apple", key:="A"
+col.add item:="Pear", key:="P"
+col.add item:="Guava", key:="G"
+Set new_col = DS.Copy(col)
+Debug.Print "The original collection has elements: " & Join(DS.Convert(col, "Variant()"), ";") 
+' Original collection has elements: Apple;Pear;Guava
+Debug.Print "The new collection has elements: " & Join(DS.Convert(new_col, "Variant()"), ";")
+' The new collection has elements: Apple;Pear;Guava
 ```
-> Result
+```VB
+Debug.Print col("A")
+' Apple
+```
+
+```VB
+Debug.Print new_col("A") 'Please note that the collection's keys were not transferred
+```
+
+> Run-time error '5':
+
+> Invalid procedure call or argument
+
+```VB
+Set dict = New Scripting.Dictionary
+dict.add key:="1", item:="odd"
+dict.add key:="2", item:="even"
+dict.add key:="3", item:="odd"
+dict.add key:="4", item:="even"
+' There has got to be a faster way to check this
+
+Set new_dict = DS.Copy(dict)
+
+Debug.Print "The number 1 is " & dict("1")                  'odd
+Debug.Print "The number 2 is " & dict("2")                  'even
+Debug.Print "The number 1 is " & new_dict("1")              'odd
+Debug.Print "The number 2 is " & new_dict("2")              'even
+```
+
 
 <br/>
 
@@ -371,20 +422,87 @@ Dim code
 ## Enumerate
 #### Parameters:
 
-| Variable | Data Type(s) | Description |
-| :---: |:--- |:--- |
-| --- | --- | --- |
-| --- | --- | --- |
-| --- | --- | --- |
-| --- | --- | --- |
+| Variable | Data Type(s) | Default | Description |
+| :---: |:--- |:--- | :--- |
+| enumerable | Variant(), Collection, Dictionary | - | The data structure to enumerate |
+| starting_idx | (optional) Variant | 0 | The starting number for the output list |
+| increment | (optional) Variant | 1 | The amount that the index is changed after each subsequent item (not yet implemented - ip) |
+| --- | --- | --- | --- |
 
 #### Returns:
-> Return
+> A "Zipped" array with the numbers at index 0 and the elements of the data structure at index 1 for each of the original data structure's elements
+
 ```VB
-' Comment
-Dim code
+' Enumerate an array
+Dim arr As Variant
+Dim dict As Scripting.Dictionary
+Dim pair As Variant, output As Variant
+
+arr = Array("e", "f", "g", "h", "i", "j")
+output = DS.Enumerate(arr, 5, 1)
+For Each pair In output
+    Debug.Print CStr(pair(0)) & ". " & pair(1)
+Next pair
 ```
-> Result
+>5\. e 
+<br/> 6. f 
+<br/> 7. g
+<br/> 8. h
+<br/> 9. i
+<br/> 10. j
+
+```VB
+' Enumerate a collection
+Dim col As Collection
+Dim pair As Variant, output As Variant
+Set col = New Collection
+col.add "10K Ohm Resistor"
+col.add "0.22uF Capacitor"
+col.add "RGB LED"
+col.add "100W PSU"
+col.add "16bit ADC"
+
+output = DS.Enumerate(col, 1, 1)
+For Each pair in output
+    Debug.Print pair(0) & " - " & pair(1)
+Next pair
+
+```
+
+> 1 - 10K Ohm Resistor
+<br/>2 - 0.22uF Capacitor
+<br/>3 - RGB LED
+<br/>4 - 100W PSU
+<br/>5 - 16bit ADC
+
+```VB
+' Enumerate a collection
+Dim dict As Scripting.Dictionary
+Dim pair As Variant, output As Variant
+Dim comparative_descriptors As Variant, description As String
+Set dict = New Scripting.Dictionary
+dict.add key:="key 1 will be lost", item:="Python"
+dict.add key:="key 2 will be lost", item:="TypeScript"
+dict.add key:="key 3 will be lost", item:="PHP"
+dict.add key:="key 4 will be lost", item:="Rust"
+dict.add key:="key 5 will be lost", item:="Julia"
+dict.add key:="key 6 will be lost", item:="Haskell"
+comparative_descriptors = Array("more intuitive", "more versatile", "better", "easier to read", "more challenging", "more fun", "cooler", "equipped with a wider array of feature rich IDE", "more future-proof")
+output = DS.Enumerate(dict, 1, 1)
+For Each pair in output
+    desc_idx = int(rnd * (ubound(comparative_descriptors) + 1))
+    description = DS.Pop(comparative_descriptors, desc_idx)
+    Debug.Print pair(0) & ": It's not that VBA isn't fun, I just think that " & pair(1) & " is " & description
+Next pair
+```
+
+> **Randomly generated statements**:
+<br/>1: It's not that VBA isn't fun, I just think that Python is more fun.
+<br/>2: It's not that VBA isn't fun, I just think that TypeScript is easier to read.
+<br/>3: It's not that VBA isn't fun, I just think that PHP is better.
+<br/>4: It's not that VBA isn't fun, I just think that Rust is cooler.
+<br/>5: It's not that VBA isn't fun, I just think that Julia is equipped with a wider array of feature rich IDE.
+<br/>6: It's not that VBA isn't fun, I just think that Haskell is more versatile.
 
 <br/>
 
@@ -394,18 +512,97 @@ Dim code
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
-| --- | --- | --- |
-| --- | --- | --- |
+| DataStructure1 | Variant(), Collection, Dictionary | The first data structure |
+| DataStructure2 | Variant(), Collection, Dictionary | The second data structure |
 | --- | --- | --- |
 | --- | --- | --- |
 
 #### Returns:
-> Return
+> Boolean: True if the elements within each data structure are the same, otherwise False
+
+#### Example: Alert the chef in case of customer allergies
+
 ```VB
-' Comment
-Dim code
+' Given some function that returns an array of ingredients that the customer cannot consume
+Public Function get_requested_dish(some_web_connection_interface As MythicalFeature) As Variant
+'...
+End Function
 ```
-> Result
+
+```VB
+' Given some function that returns an array of ingredients that the customer cannot consume
+Public Function get_allergies(data_from_web_form As CopyAndPasteFromTheIntern) As Variant
+'...
+End Function
+```
+
+```VB
+' And another function which returns an array with the required ingredients for a recipe
+Public Function get_recipe(recipe_name As String) As Variant
+'...
+End Function
+```
+
+```VB
+Dim recipe As Variant
+Dim requested_dish As String
+Dim allergy_filtered_recipe As Variant
+Dim customer_allergies As Variant
+Dim requires_custom_recipe As Boolean
+
+requested_dish = get_requested_dish(global_connection)      ' Chocolate Chip Cookies
+recipe = get_recipe(requested_dish)
+```
+```Python
+['Flour', 'Milk', 'Granulated Sugar', 'Chocolate', 'Egg', 'Butter', 'Cinnamon', 'Vanilla Extract', 'Baking Powder']
+```
+
+```VB
+customer_allergies = get_allergies("json.txt") ' Sent by intern via email, subject: Please see the attached json file
+```
+> After formatting:
+
+- Peanut
+- Milk
+- Butter
+- Shellfish
+
+```VB
+Set edit_recipe = DS.Convert(DS.Zip(recipe, DS.Range(0, ubound(recipe))))
+
+For Each allergy In customer_allergies
+    If DS.Exists(needle:=allergy, haystack:=edit_recipe.keys) Then
+        edit_recipe.Remove(allergy)
+    End If
+Next allergy
+
+requires_custom_recipe = Not DS.Equivalent(recipe, edit_recipe.keys) 'True
+If requires_custom_recipe Then 
+    alert_message = "Custom recipe for [" & requested_dish & "] is needed." _
+        & vbCrLf _
+        & "Replacements needed for: " & Join(customer_allergies, ", ") _
+        & vbCrLf _
+        & "in addition to standard ingredients: " & Join(edit_recipe.Keys, ", ")
+    alert_the_cook alert_message
+End If
+```
+After formatting:
+> Custom recipe for [Chocolate Chip Cookies] is needed.
+<br/>Replacements needed for: 
+
+>> * Peanut
+>> * Milk
+>> * Butter
+>> * Shellfish
+
+> Standard ingredients: 
+>> * Flour
+>> * Granulated Sugar
+>> * Chocolate
+>> * Egg
+>> * Cinnamon
+>> * Vanilla Extract
+>> * Baking Powder
 
 <br/>
 
@@ -416,13 +613,13 @@ Dim code
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
-| --- | --- | --- |
-| --- | --- | --- |
-| --- | --- | --- |
-| --- | --- | --- |
+| needle | Variant | The thing to find |
+| haystack | Variant(), Collection, Dictionary | Where to look |
+| wildcard_needle | Boolean | Toggle whether to use the 'like' operator on the [needle] argument |
+| wildcard_haystack | Boolean | Toggle whether to use the 'like' operator on the haystack |
 
 #### Returns:
-> Return
+> Boolean: True if the needle is in the haystack, False otherwise
 ```VB
 ' Comment
 Dim code
@@ -870,6 +1067,12 @@ Dim code
 > Result
 
 <br/><br/><br/>
+
+
+# Notes
+
+[^1]: Satire
+
 
 # Appendix
 ## Analagous Shorthand Python-VBA
