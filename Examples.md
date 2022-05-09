@@ -753,6 +753,13 @@ filtered_arr = DS.Filter(arr, "=", 1)
 ```
 
 ```VB
+arr = Array(60, 1, 4.2, 5.8, 20.1, 100, 101, 11.573, 46.642, 174, 200.3, 58, 121.4)
+filtered_arr = DS.Filter(arr, "outside", Array(40, 60))
+' 1, 4.2, 5.8, 20.1, 100, 101, 11.573, 174, 200.3, 121.4
+```
+
+
+```VB
 ' Remove past-tense verbs
 Dim verbs As Variant
 verbs = Array("Look", "Looked", "Filter", "Filtered", "Attempt", "Attempted", "Load", "Loaded")
@@ -813,6 +820,10 @@ flattened = DS.Flatten(nested)
 
 ***
 ## Homogeneous
+
+### TypeName checks all elements within a data structure and returns the typename if they're the same type, otherwise returns False
+#### Debating whether to change the return to empty string (?) on mismatch
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -823,8 +834,21 @@ flattened = DS.Flatten(nested)
 #### Returns:
 > Return
 ```VB
-' Comment
-Dim code
+' Example
+Dim thing1 As Variant, thing2 As Variant, thing3 As Variant, thing4 As Variant, thing5 As Variant, thing6 As Variant
+
+Set thing1 = New Collection
+Set thing2 = New Collection
+Set thing3 = New Collection
+Set thing4 = New Collection
+Debug.Print "Type is: " & DS.Homogeneous(thing1, thing2, thing3, thing4)
+' Type is: Collection
+
+Set thing5 = New Scripting.Dictionary
+Set thing6 = 1
+Debug.Print "Type is: " & DS.Homogeneous(thing1, thing2, thing3, thing4, thing5, thing6)
+' Type is: False
+
 ```
 > Result
 
@@ -832,6 +856,9 @@ Dim code
 
 ***
 ## Intersection
+
+' IN PROGRESS
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -851,19 +878,51 @@ Dim code
 
 ***
 ## Map
+
+### Pseudo-Terniary value assignment
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
+| source_values | Variant(), Collection | --- |
+| variables | ParamArray | variable names to distribute values to |
 | --- | --- | --- |
 | --- | --- | --- |
-| --- | --- | --- |
-| --- | --- | --- |
+
+#### Pending: single value mapped to all variables
+#### Pending #2: Object compatibility
 
 #### Returns:
 > Return
 ```VB
-' Comment
-Dim code
+' Example
+Dim text As String, num As Integer, big_num As Long, small_num As Single, any_num As Variant
+
+DS.Map Array("Single statement assignment: ", 100, 2147483647, .0625, 11), text, num, big_num, small_num, any_num
+
+Debug.Print text & "num: " & num & " big_num: " & big_num & " small_num: " & small_num & " any_num: " & any_num
+' Single statement assignment: num: 100 big_num: 2147483647 small_num: 0.0625 any_num: 11
 ```
+
+```VB
+' Example: More values than containers
+Dim value_source As Variant
+Dim n1, n2, n3, n4, n5, n6, n7, n8, n9, n10
+value_source = DS.Range(1, 20) '20 values
+DS.Map value_source, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10 '10 containers
+Debug.Print Join(Array(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10), ", ")
+' 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+```
+
+```VB
+' Example: More containers than values
+Dim value_source As Variant
+Dim n1, n2, n3, n4, n5, n6, n7, n8, n9, n10
+value_source = DS.Range(1, 5) '5 values
+DS.Map value_source, n1, n2, n3, n4, n5, n6, n7, n8, n9, n10 '10 containers
+Debug.Print Join(Array(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10), ", ")
+' 1, 2, 3, 4, 5, , , , , 
+```
+
 > Result
 
 <br/>
