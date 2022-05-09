@@ -620,11 +620,51 @@ After formatting:
 
 #### Returns:
 > Boolean: True if the needle is in the haystack, False otherwise
+
+### Example: *Given a set of painting colors (requested supplies) and a list of what's in stock... Check whether any of the the following are true:*
+* An exact color-match exists (by comparing color names)
+* A potential close-color-match exists (by comparing color name)
+
 ```VB
-' Comment
-Dim code
+    Dim supplies As Variant
+    Dim needles As Variant, needle As Variant
+    Dim results As Collection, results_wc_needle As Collection, results_wc_supplies As Collection, results_wc_all As Collection 'wc:  wildcard
+    Dim zipped_results As Variant
+    
+    Set results = New Collection
+    Set results_wc_needle = New Collection
+    Set results_wc_supplies = New Collection
+    Set results_wc_all = New Collection
+    
+    needles = Array("red", "green", "blue", "off-white", "magenta")
+    supplies = Array("red", "mint green", "black", "yellow", "sunset orange", "crimson", "light blue", "white")
+    
+    For Each needle In needles ' "red", "green", "blue", "off-white", "magenta"
+        results.Add Array(needle, DS.Exists(needle, supplies))
+        results_wc_needle.Add Array(needle, DS.Exists(needle, supplies, wildcard_needle:=True, wildcard_supplies:=False))
+        results_wc_supplies.Add Array(needle, DS.Exists(needle, supplies, wildcard_needle:=False, wildcard_supplies:=True))
+        results_wc_all.Add Array(needle, DS.Exists(needle, supplies, wildcard_needle:=True, wildcard_supplies:=True))
+    Next needle
+
+    zipped_results = DS.Zip(results, results_wc_needle, results_wc_supplies, results_wc_all)
+
 ```
-> Result
+> Result:
+
+| Color | Exists w/o modifier | Exists w/ wildcard "needle" | Exists w/ wildcard "haystack" | Exists w/ both wildcards applied |
+| --- | --- | --- | --- | --- |
+| **red** | True | True | True | True |
+| **green** | False | True | False | True |
+| **blue** | False | True | False | True |
+| **off-white** | False | False | True | True |
+| **magenta** | False | False | False | False |
+
+> Explanation: 
+>> * **Red** matches because there is an exact match of color in existing supplies
+>> * **Green** doesn't have an exact match but matches in the statement mint_green (wc applied to supplies) like "\*green\*" (wc applied to requested)
+>> * The same applies to "\***blue**\*", with "light blue"
+>> * **off-white** doesn't have an exact match but "\*white\*" is like "\*off-white\*"
+>> * **Magenta** has no match, nor does it have a wildcard match
 
 <br/>
 
