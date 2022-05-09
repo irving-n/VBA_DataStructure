@@ -8,6 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
+#Const conApp = "Microsoft Excel"
 'TERMS:
 '
 '   DataStructure: A value-variable or object-variable which holds a set of other values/objects
@@ -74,7 +75,7 @@ On Error GoTo Append_clean_up
     
 Append_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
         Err.Clear
     End If
     
@@ -92,6 +93,7 @@ Public Function Apply(DataStructure_arr As Variant, funcName As String, elem_arg
     Dim funcString As String
     Dim rtn As Variant, args_xfer As Variant, val As Variant
     Dim compile_col As Collection, funcPart_col As Collection
+    Dim this_app As Application
     
     If Not IsArray(DataStructure_arr) Then
         Apply = Empty
@@ -150,12 +152,12 @@ Public Function Apply(DataStructure_arr As Variant, funcName As String, elem_arg
         
         On Error Resume Next
         Select Case total_args_count  ' warning - ugly; it needs to be like this because the arguments supplied can't be filled with a default Missing reference
-            Case 1: compile_col.Add Item:=Application.run(funcName, args_xfer(0))
-            Case 2: compile_col.Add Item:=Application.run(funcName, args_xfer(0), args_xfer(1))
-            Case 3: compile_col.Add Item:=Application.run(funcName, args_xfer(0), args_xfer(1), args_xfer(2))
-            Case 4: compile_col.Add Item:=Application.run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3))
-            Case 5: compile_col.Add Item:=Application.run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3), args_xfer(4))
-            Case 6: compile_col.Add Item:=Application.run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3), args_xfer(4), args_xfer(5))
+            Case 1: compile_col.Add Item:=Application.Run(funcName, args_xfer(0))
+            Case 2: compile_col.Add Item:=Application.Run(funcName, args_xfer(0), args_xfer(1))
+            Case 3: compile_col.Add Item:=Application.Run(funcName, args_xfer(0), args_xfer(1), args_xfer(2))
+            Case 4: compile_col.Add Item:=Application.Run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3))
+            Case 5: compile_col.Add Item:=Application.Run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3), args_xfer(4))
+            Case 6: compile_col.Add Item:=Application.Run(funcName, args_xfer(0), args_xfer(1), args_xfer(2), args_xfer(3), args_xfer(4), args_xfer(5))
             Case Else: Debug.Print "Please edit code to add more arguments, follow the same pattern and it should work."
         End Select
         If Err.Number <> 0 Then
@@ -173,7 +175,15 @@ Public Function Apply(DataStructure_arr As Variant, funcName As String, elem_arg
                 End If
             Next val
             funcString = funcString & Join(CollectionToArray(funcPart_col), ", ") & ")"
-            compile_col.Add Item:=Eval(funcString)
+            'Set this_app = Application
+            
+            #If conApp = "Microsoft Excel" Then
+                compile_col.Add Item:=Application.Evaluate(funcString)
+            #Else
+                compile_col.Add Item:=Eval(funcString)
+                Debug.Print "Not Excel!!!"
+            #End If
+            
             Err.Clear
         End If
         On Error GoTo 0
@@ -199,7 +209,7 @@ Public Function CharacterArray(ByVal text As String) As Variant
 End Function
 
 
-Public Function Convert(DataStructure As Variant, Optional ByVal OutputType As String, Optional ConversionOptions As Variant) As Variant
+Public Function Convert(DataStructure As Variant, ByVal OutputType As String, Optional ConversionOptions As Variant, Optional keys As Variant) As Variant
     Dim typeNm As String
     Dim tmpArr As Variant 'temporary array
     Dim rtn As Variant
@@ -226,13 +236,17 @@ Public Function Convert(DataStructure As Variant, Optional ByVal OutputType As S
     
     Select Case OutputType
         Case "Dictionary"
-            If IsArray(tmpArr(0)) Then
+            If Not IsMissing(keys) Then
+                Set rtn = ArrayToDictionary(DS.Zip(keys, tmpArr), True)
+              ElseIf IsArray(tmpArr(0)) Then
                 Set rtn = ArrayToDictionary(tmpArr, True)
               Else
                 Set rtn = ArrayToDictionary(tmpArr, False)
             End If
         Case "Collection"
-            If IsArray(tmpArr(0)) Then
+            If (Not IsMissing(keys)) Then
+                Set rtn = ArrayToCollection(tmpArr, True, keys:=keys)
+              ElseIf IsArray(tmpArr(0)) Then
                 Set rtn = ArrayToCollection(tmpArr, True)
               Else
                 Set rtn = ArrayToCollection(tmpArr, False)
@@ -256,7 +270,7 @@ Public Function Convert(DataStructure As Variant, Optional ByVal OutputType As S
     End Select
 
 Convert_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "] in method [Convert] in class DS: " & Err.description: Err.Clear
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "] in method [Convert] in class DS: " & Err.Description: Err.Clear
     
     Set col = Nothing
     
@@ -284,7 +298,7 @@ Public Function Copy(DataStructure As Variant, Optional ByVal failOnNestedObject
         Select Case TypeName(DataStructure)
             Case "Dictionary"
                 Set rtn = New Scripting.Dictionary
-                For Each comp In Zip(DataStructure.Keys, DataStructure.Items)
+                For Each comp In Zip(DataStructure.keys, DataStructure.Items)
                     curkey = comp(0)
                     If IsObject(comp(1)) Then
                         If failOnNestedObjects Then Err.Raise 450
@@ -340,7 +354,7 @@ Public Function Copy(DataStructure As Variant, Optional ByVal failOnNestedObject
 Copy_clean_up:
 
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
         Err.Clear
     End If
     
@@ -425,7 +439,7 @@ On Error GoTo Range_clean_up
 Range_clean_up:
     If Err.Number <> 0 Then
         Debug.Print "Class [" & TypeName(Me) & "] method [Range]"
-        Debug.Print Tab(10); "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print Tab(10); "Error [" & Err.Number & "]: " & Err.Description
         Err.Clear
     End If
 
@@ -557,7 +571,7 @@ On Error GoTo Exists_clean_up
     Next itm
     
 Exists_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "] in method [Exists] in class DS: " & Err.description: Err.Clear
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "] in method [Exists] in class DS: " & Err.Description: Err.Clear
     Set col = Nothing
     
     Exists = match_found
@@ -605,7 +619,7 @@ On Error GoTo enumerate_clean_up
 
 enumerate_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
         Debug.Print "   Context: " & "Function [enumerate] "
         Err.Clear
         rtn = Array()
@@ -650,7 +664,7 @@ On Error GoTo Equivalent_clean_up
 'Check for the same elements
     Select Case typeNm
         Case "Dictionary"
-            If Not Equivalent(DataStructure1.Keys, DataStructure2.Keys) Then
+            If Not Equivalent(DataStructure1.keys, DataStructure2.keys) Then
                 rtn = False
                 GoTo Equivalent_clean_up
             End If
@@ -687,7 +701,7 @@ On Error GoTo Equivalent_clean_up
 
 Equivalent_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
         Err.Clear
         rtn = False
     End If
@@ -734,7 +748,7 @@ On Error GoTo Fill_clean_up
 '                container.Add key:=???, item:= stuff
               Else
                 
-                For Each keyv In container_.Keys
+                For Each keyv In container_.keys
                     On Error Resume Next
                     container_(keyv) = stuff
                     If Err.Number <> 0 Then
@@ -787,7 +801,7 @@ On Error GoTo Fill_clean_up
     
 Fill_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
         rtn = False
       Else
         rtn = True
@@ -918,7 +932,7 @@ On Error GoTo Filter_clean_up
     End If
     
 Filter_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "] in method [Filter] in class DS: " & Err.description: Err.Clear
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "] in method [Filter] in class DS: " & Err.Description: Err.Clear
     Set COLander = Nothing
     If IsObject(rtn) Then
         Set Filter = rtn
@@ -928,56 +942,110 @@ Filter_clean_up:
 End Function
 
 
-Public Function Flatten(embedded_DataStructure As Variant, Optional ByVal OutputType As String = "") As Variant
-    Dim recursive_col As Collection
+'Public Function Old_Flatten(embedded_DataStructure As Variant, Optional ByVal OutputType As String = "") As Variant
+'    'Flattens to an array
+'    Dim recursive_col As Collection
+'    Dim rtn As Variant
+'    Dim thing As Variant, validated_DataStructure As Variant
+'    Dim rtn_type As String
+'
+'    If isDataStructure(embedded_DataStructure) Then
+'        If isDataStructure(OutputType) Then
+'            rtn_type = OutputType
+'          Else
+'            rtn_type = TypeName(embedded_DataStructure)
+'        End If
+'      Else
+'        Set Old_Flatten = Nothing
+'        Exit Function
+'    End If
+'
+'    Set recursive_col = New Collection
+'
+'    If TypeName(embedded_DataStructure) = "Dictionary" Then
+'        validated_DataStructure = Zip(embedded_DataStructure)
+'      Else
+'        On Error Resume Next
+'        validated_DataStructure = embedded_DataStructure
+'        If Err.Number <> 0 Then
+'            Err.Clear
+'            Set validated_DataStructure = embedded_DataStructure
+'        End If
+'    End If
+'
+'    For Each thing In validated_DataStructure
+'        If isDataStructure(thing) Then
+'            Set recursive_col = Merge(recursive_col, Old_Flatten(thing))
+'          Else
+'            recursive_col.Add Item:=thing
+'        End If
+'    Next thing
+'
+'    If TypeName(recursive_col) <> rtn_type Then
+'        On Error Resume Next
+'        Set rtn = Convert(recursive_col, rtn_type)
+'        If Err.Number <> 0 Then
+'            Err.Clear
+'            rtn = Convert(recursive_col, rtn_type)
+'        End If
+'      Else
+'        Set rtn = Convert(recursive_col, rtn_type)
+'    End If
+'
+'End Function
+
+
+Public Function Flatten(DataStructure As Variant) As Variant 'Returns a flattened array
+'Note that keys belonging to collection objects cannot be preserved
     Dim rtn As Variant
-    Dim thing As Variant, validated_DataStructure As Variant
-    Dim rtn_type As String
+    Dim nested As Variant, element As Variant, flatten_queue As Variant
+    Dim flattened_in_progress As Collection
     
-    If isDataStructure(embedded_DataStructure) Then
-        If isDataStructure(OutputType) Then
-            rtn_type = OutputType
+    If Not isDataStructure(DataStructure) Then
+        rtn = Array()
+        GoTo Flatten_clean_up
+    End If
+    
+    Set flattened_in_progress = New Collection
+    
+    Select Case TypeName(DataStructure)
+        Case "Dictionary"
+            flatten_queue = DS.Zip(DataStructure)
+        Case "Collection"
+            flatten_queue = DS.Convert(DataStructure, "Variant()")
+        Case "Variant()"
+            flatten_queue = DataStructure
+        Case Else
+            If IsArray(DataStructure) Then 'Integer(), String(), Long(), etc... are also possible
+                flatten_queue = DataStructure
+              Else
+                flatten_queue = Array(DataStructure) 'Just append the single element
+            End If
+    End Select
+    
+    For Each element In flatten_queue
+        If isDataStructure(element) Then
+            For Each nested In DS.Flatten(element)
+                flattened_in_progress.Add nested
+            Next nested
           Else
-            rtn_type = TypeName(embedded_DataStructure)
+            flattened_in_progress.Add element
         End If
-      Else
-        Set Flatten = Nothing
-        Exit Function
+    Next element
+    
+    rtn = DS.Convert(flattened_in_progress, "Variant()")
+    
+Flatten_clean_up:
+    If Err.Number <> 0 Then
+        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
+        Debug.Print "Class [" & TypeName(Me) & "] - Method [" & "Flatten" & "]"
+        Err.Clear
+        rtn = Array()
     End If
-    
-    Set recursive_col = New Collection
-    
-    If TypeName(embedded_DataStructure) = "Dictionary" Then
-        validated_DataStructure = Zip(embedded_DataStructure)
-      Else
-        On Error Resume Next
-        validated_DataStructure = embedded_DataStructure
-        If Err.Number <> 0 Then
-            Err.Clear
-            Set validated_DataStructure = embedded_DataStructure
-        End If
-    End If
-    
-    For Each thing In validated_DataStructure
-        If isDataStructure(thing) Then
-            Set recursive_col = Merge(recursive_col, Flatten(thing))
-          Else
-            recursive_col.Add Item:=thing
-        End If
-    Next thing
-    
-    If TypeName(recursive_col) <> rtn_type Then
-        On Error Resume Next
-        Set rtn = Convert(recursive_col, rtn_type)
-        If Err.Number <> 0 Then
-            Err.Clear
-            rtn = Convert(recursive_col, rtn_type)
-        End If
-      Else
-        Set rtn = Convert(recursive_col, rtn_type)
-    End If
-    
+
+    Flatten = rtn
 End Function
+
 
 Public Function GuiltyByAssociation(associated_DataStructure As Variant, DataStructure As Variant, ByVal operator_expression As String, compare_against As Variant, ParamArray other_args() As Variant) As Variant
 
@@ -1021,7 +1089,7 @@ On Error GoTo Intersection_clean_up
         Set main_structure = master_collection(i)
         For Each thing In main_structure
             'if thing exists in each one (use the resolve method) then add it to the yes pile, otherwise add it to the no pile
-            
+                
             'then remove the thing from all structures in master_collection
             For j = (i + 1) To master_collection.Count
                 
@@ -1053,7 +1121,7 @@ On Error GoTo Intersection_clean_up
        
 Intersection_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
         Err.Clear
     End If
     
@@ -1114,7 +1182,7 @@ On Error GoTo Homogeneous_clean_up
 
 Homogeneous_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
         rtn = False
         Err.Clear
     End If
@@ -1147,7 +1215,7 @@ End If
 map_clean_up:
 If Err.Number <> 0 Then
     Debug.Print "Error in mapping multiple values across array."
-    Debug.Print "Error [" & Err.Number & "]: " & Err.description
+    Debug.Print "Error [" & Err.Number & "]: " & Err.Description
 End If
 
 Map = rtn
@@ -1212,7 +1280,7 @@ On Error GoTo Match_clean_up
     
 Match_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
         Debug.Print "Class [" & TypeName(Me) & "] - Method [Match]"
         Err.Clear
     End If
@@ -1333,7 +1401,7 @@ Public Function Minimum(DataStructure As Variant, Optional ByVal string_support 
     End If
     
 Minimum_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.description: Err.Clear
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.Description: Err.Clear
     Set col = Nothing
     Minimum = lowest
 End Function
@@ -1378,7 +1446,7 @@ Public Function Maximum(DataStructure As Variant) As Variant
     End If
     
 Maximum_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.description: Err.Clear
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.Description: Err.Clear
     Set col = Nothing
     Maximum = highest
 
@@ -1428,7 +1496,7 @@ Public Function Pop(ByRef DataStructure As Variant, Optional ByVal Index As Long
             If Index = -1 Then Index = DataStructure.Count - 1 'Last element
             
             If DataStructure.Count >= Index + 1 Then
-                arr = Me.Zip(DataStructure.Keys, DataStructure.Items)
+                arr = Me.Zip(DataStructure.keys, DataStructure.Items)
                 keyrem = arr(Index)(0)
                 If IsObject(arr(Index)(1)) Then
                     Set rtn = arr(Index)(1)
@@ -1481,7 +1549,7 @@ Public Function Pop(ByRef DataStructure As Variant, Optional ByVal Index As Long
     
 Pop_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
         Err.Clear
     End If
     
@@ -1503,7 +1571,7 @@ Public Function Postfixed(postfixables As Variant, ByVal postfix As String, Opti
       Else
         Postfixed = outerfix(postfixables, _
                                     attachment:=postfix, _
-                                    prefix:=True, _
+                                    prefix:=False, _
                                     apply_to_dict_keys:=apply_to_dict_keys)
     End If
 End Function
@@ -1538,7 +1606,7 @@ Public Function Remove(DataStructure As Variant, Optional ByVal Index As Integer
     
     Select Case TypeName(DataStructure)
         Case "Dictionary"
-            rkey = DataStructure.Keys(Index)
+            rkey = DataStructure.keys(Index)
             Set rtn = DataStructure.Remove(rkey)
         Case "Collection"
             Set col = DataStructure
@@ -1591,7 +1659,7 @@ Public Function Zip(ParamArray DataStructures() As Variant) As Variant
     If UBound(DataStructures) = 0 Then
         If TypeName(DataStructures(0)) = "Dictionary" Then
             With DataStructures(0)
-                rtn = zipArray_(.Keys, .Items)
+                rtn = zipArray_(.keys, .Items)
             End With
             Zip = rtn
             Exit Function
@@ -1628,7 +1696,7 @@ Public Function Zip(ParamArray DataStructures() As Variant) As Variant
                 Case "Collection"
                     tcol.Add Item:=thing(j + 1)
                 Case "Dictionary" 'uh oh
-                    tcol.Add Item:=thing(thing.Keys(j))
+                    tcol.Add Item:=thing(thing.keys(j))
                 Case Else
                     tcol.Add Item:=thing(j)
             End Select
@@ -1637,7 +1705,7 @@ Public Function Zip(ParamArray DataStructures() As Variant) As Variant
         rtn(j) = CollectionToArray(tcol)
     Next j
 Zip_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.description
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.Description
     Zip = rtn
 End Function
 
@@ -1724,7 +1792,7 @@ Private Function DictionaryToArray(DataStructure_dictionary As Scripting.Diction
     Dim i As Integer
     If DataStructure_dictionary.Count > 0 Then
         ReDim arr(DataStructure_dictionary.Count - 1)
-        keyarr = DataStructure_dictionary.Keys
+        keyarr = DataStructure_dictionary.keys
         itemarr = DataStructure_dictionary.Items
         For i = 0 To (DataStructure_dictionary.Count - 1)
             arr(i) = Array(keyarr(i), itemarr(i))
@@ -1734,25 +1802,105 @@ Private Function DictionaryToArray(DataStructure_dictionary As Scripting.Diction
 End Function
 
 
-Private Function ArrayToCollection(DataStructure As Variant, Optional ByVal populateKeys As Boolean = True) As Collection
+Private Function ArrayToCollection(DataStructure As Variant, Optional ByVal populateKeys As Boolean = True, Optional keys As Variant, Optional ByVal auto_increment_dup_keys As Boolean = True) As Collection
     Dim rtn_col As Collection
-    Dim val As Variant
+    Dim val As Variant, pair As Variant, paired As Variant
+    Dim ckey As Variant, citem As Variant, i As Integer, newkey As Variant
+    Dim key_source As Variant
+    Dim source_is_valid As Boolean, use_keys As Boolean
     Set rtn_col = New Collection
     
     If IsArray(DataStructure) Then
         On Error Resume Next
         If UBound(DataStructure) >= 0 Then
             If Err.Number <> 0 Then
-                'No items to add
-              Else
-                For Each val In DataStructure
-                    rtn_col.Add val
-                Next val
+                GoTo ArrayToCollection_clean_up
             End If
         End If
     End If
+
+    If populateKeys Then
+        'Determine where to get the keys (either nested or provided as an additional argument)
+        If IsMissing(keys) Then
+            key_source = "nested"
+          Else
+            key_source = "optional arg"
+        End If
+        
+        source_is_valid = True
+        Select Case key_source
+            Case "nested"
+                'Validate the nested keys
+                For Each pair In DataStructure
+                    source_is_valid = (IsArray(pair))
+                    If source_is_valid Then source_is_valid = (UBound(pair) = 1)
+                    If source_is_valid Then source_is_valid = (Len(CStr(pair(0))) > 0)
+                    If Not source_is_valid Then Exit For
+                Next pair
+                
+            Case "optional arg"
+                'Validate the provided keys array
+                source_is_valid = (UBound(keys) = (UBound(DataStructure)))
+                If source_is_valid Then
+                    For Each ckey In keys
+                        source_is_valid = Len(CStr(ckey)) > 0
+                        If Not source_is_valid Then Exit For
+                    Next ckey
+                End If
+                
+            Case Else
+                source_is_valid = False
+                'uh oh
+        End Select
+        
+        If source_is_valid Then
+            Select Case key_source
+                Case "nested"
+                    paired = DataStructure
+                    use_keys = True
+                Case "optional arg"
+                    paired = DS.Zip(keys, DataStructure)
+                    use_keys = True
+            End Select
+          Else
+            use_keys = False
+        End If
+      Else
+        use_keys = False
+    End If
+                          
+    If use_keys Then
+        For Each pair In paired
+            On Error Resume Next
+            i = 0
+            newkey = CStr(pair(0))
+            Do
+                Err.Clear
+                rtn_col.Add Item:=pair(1), Key:=newkey
+                newkey = CStr(pair(0)) & "-" & CStr(i)
+                i = i + 1
+            Loop While Err.Number = 457
+            
+        Next pair
+        On Error GoTo ArrayToCollection_clean_up
+      Else
+        
+        'add items with no keys
+        For Each val In DataStructure
+            rtn_col.Add val
+        Next val
+    End If
+
+    
+ArrayToCollection_clean_up:
+    If Err.Number <> 0 Then
+        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
+        Debug.Print "Class [" & TypeName(Me) & "] - Method [" & "ArrayToCollection" & "]"
+        Err.Clear
+    End If
     
     Set ArrayToCollection = rtn_col
+    
 End Function
 
 
@@ -1774,7 +1922,8 @@ Private Function ArrayToDictionary(DataStructure As Variant, Optional ByVal popu
                         nextkey = basekey & CStr(keyidx_suffix)
                         keyidx_suffix = keyidx_suffix + 1
                     Wend
-                    rtn_dictionary.Add Key:=nextkey, Item:=Remove(comp, Index:=0)
+'                    rtn_dictionary.Add Key:=nextkey, Item:=Remove(comp, Index:=0)
+                    rtn_dictionary.Add Key:=nextkey, Item:=comp(1)
                 Next comp
               Else 'ignore keys, use regular indexing
                 i = 0
@@ -1795,7 +1944,7 @@ Private Function ArrayToDictionary(DataStructure As Variant, Optional ByVal popu
     End If '
 
 ArrayToDictionary_clean_up:
-    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.description
+    If Err.Number <> 0 Then Debug.Print "Error [" & Err.Number & "]: " & Err.Description
     
     Set ArrayToDictionary = rtn_dictionary
     
@@ -1890,7 +2039,7 @@ On Error GoTo outerfix_clean_up
     If isDataStructure(stringables) Then
         Set col = New Collection
         If TypeName(stringables) = "Dictionary" Then
-            elements = IIf(apply_to_dict_keys, stringables.Keys, stringables.Items)
+            elements = IIf(apply_to_dict_keys, stringables.keys, stringables.Items)
           ElseIf TypeName(stringables) = "Collection" Then
             GoTo outerfix_clean_up
           Else
@@ -1912,7 +2061,7 @@ On Error GoTo outerfix_clean_up
         col.Add tmpFixed
     Next elem
     
-    Set output = Copy(stringables)
+    If IsObject(stringables) Then Set output = Copy(stringables) Else output = Copy(stringables)
     
     Select Case TypeName(output)
         Case "Dictionary" 'Copy stringables so that the values in the reference are unchanged
@@ -1941,7 +2090,7 @@ On Error GoTo outerfix_clean_up
     
 outerfix_clean_up:
     If Err.Number <> 0 Then
-        Debug.Print "Error [" & Err.Number & "]: " & Err.description
+        Debug.Print "Error [" & Err.Number & "]: " & Err.Description
         Debug.Print Tab(10); "Class [" & TypeName(Me) & "] - Method [" & "outerfix" & "]"
         Err.Clear
         If IsObject(stringables) Then Set output = Nothing
