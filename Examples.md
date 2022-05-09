@@ -1,7 +1,38 @@
 # **Examples**
+
+## Table of Contents
+[Append](#append)
+<br/>[Apply](#apply)
+<br/>[CharacterArray](#characterarray)
+<br/>[Convert](#convert)
+<br/>[Copy](#copy)
+<br/>[Enumerate](#enumerate)
+<br/>[Equivalent](#equivalent)
+<br/>[Exists](#exists)
+<br/>[Fill](#fill)
+<br/>[Filter](#filter)
+<br/>[Flatten](#flatten)
+<br/>[Homogeneous](#homogeneous)
+<br/>[Intersection](#intersection)
+<br/>[Map](#map)
+<br/>[Match](#match)
+<br/>[Maximum](#maximum)
+<br/>[Merge](#merge)
+<br/>[Minimum](#minimum)
+<br/>[Ones](#ones)
+<br/>[Outersection](#outersection)
+<br/>[Pop](#pop)
+<br/>[PostFixed](#postfixed)
+<br/>[PreFixed](#prefixed)
+<br/>[Range](#range)
+<br/>[Remove](#remove)
+<br/>[Resolve](#resolve)
+<br/>[Reverse](#reverse)
+<br/>[Transpose](#transpose)
+<br/>[Zip](#zip)
+
+
 ## **Notes**
-
-
 
 > Syntax:
   >> For the sake of shorthand & readability, I'll be using the syntax for Python's data structures, lists, tuples, and dictionaries, to represent the class methods' returns that take the form of the VBA data structures, arrays, collections, and dictionaries respectively.
