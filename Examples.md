@@ -171,22 +171,178 @@ all_characters = DS.CharacterArray(book_title)
 | DataStructure | Variant(), Collection, Dictionary | --- |
 | OutputType | String | The name of the data type |
 | ConversionOptions | Variant | No current implementation |
-| --- | --- | --- |
+| keys | Variant() | For conversion to dictionaries and collections, array of keys with the same number of elements as the DataStructure |
 
 #### Returns:
-> The data structure converted into whatever format was specified
-#### Example 1: dictionary to array
-```VB
-' Comment
-Dim dict As Scripting.Dictionary
-Dim dkeys As Variant, ditems As Variant, i As Integer
-Dim output As Variant
 
-dkeys = Array(")
+The data structure converted into whatever format was specified
+
+<br/>
+
+#### Example 1: Basic Conversions
+
+```VB
+Dim dict As Scripting.Dictionary
+Dim ingredients() As String
+Dim keys As Variant
+Dim in_stock() As Boolean
+
+Set dict = New Scripting.Dictionary
 
 
 ```
-> Result
+
+
+
+#### Example 2: Array(s) to dictionary of collections
+
+#### Napkin-Math, except done in bulk.
+#### **A quick cost-performance analysis: maximum point load under fixed cantilever loading conditions of various metals**
+
+
+
+*The following example uses the **Convert** method to associate several pieces of linked data.*
+
+Material property sources: 
+- https://www.engineeringtoolbox.com/young-modulus-d_417.html
+- https://www.mcmaster.com
+- https://www.aerospacemetals.com/aluminum-distributor.html
+
+
+> Length
+>> L = 3 ft = 36 in
+
+> Cross Section 
+>> a = b = 0.25 in (Square)
+
+> Distance to Neutral Axis
+>> y = 0.5*a
+>>> = 0.125 in
+
+> Area Moment of Inertia 
+>> I = a<sup>4</sup>/12
+>>> = 3.26e<sup>-4</sup> in<sup>4</sup>
+
+<br/><br/>
+> Max Force, F<sub>max</sub>, on a cantilever before yielding:
+
+> F = σ I / y L
+
+
+```VB
+Function force_at_yield(ByVal yield_strength As Double, ByVal area_mom_inert As Double, ByVal neutral_axis_dist As Double, ByVal length As Double) As Double
+    force_at_yield = (yield_strength * area_mom_inert) / (neutral_axis_dist * length)
+End Function
+```
+
+```VB
+Function deflection_at_yield(ByVal force As Double, ByVal length As Double, ByVal elast_mod As Double, ByVal area_mom_inert As Double) As Double
+    deflection_at_yield = (force * (length ^ 3)) / (3 * elast_mod * area_mom_inert)
+End Function
+```
+
+```VB
+Dim l1 As Double, ArMoIn As Double, y_neut As Double, dataset As Variant
+Dim mat_name As String, md As Variant, max_force As Double, max_defl As Double
+Dim materials As Variant
+Dim elastic_moduli As Variant
+Dim yield_strengths As Variant
+Dim mcm_ids As Variant
+Dim prices_per_lineal_ft As Variant
+Dim material_properties As Variant
+Dim header_keys As Variant
+Dim property_set As Variant, props_col As Collection, prop_dictionary As Scripting.Dictionary
+
+' SHAPE -----------------------------------
+'Length
+l1 = 1 * 12 ' in.
+'Area Moment of Inertia
+ArMoIn = 0.000326 'in ^ 4
+'Distance to Neutral Axis
+y_neut = 0.125 'in
+' -----------------------------------------
+
+' MATERIAL PROPERTIES ---------------------
+'name
+materials = Array("Aluminum:Anodized Multipurpose 6061", "Aluminum:Architectural 6063", "Aluminum:High-Strength 2024", "Aluminum:Easy-to-Machine 2011", "Low-Carbon Steel Bar 1018", "Ultra-Machinable 12L14 Carbon Steel Bars", "A2 Tool Steel")
+'modulus of elasticity
+elastic_moduli = Array(10000, 10000, 10600, 10150, 29700, 29000, 27500) 'ksi
+elastic_moduli = DS.Apply(elastic_moduli, "1000*", 0) 'ksi -> psi
+'yield strength
+yield_strengths = Array(35000, 16000, 47000, 38000, 54000, 60000, 51000) 'psi
+'McMaster
+mcm_ids = Array("6023K35", "89755K69", "86895K81", "3031N2", "9143K13", "6547K112", "9019K95")
+'price
+prices_per_lineal_ft = Array(24.99 / 3, 8.39 / 8, 57.29 / 6, 17.94 / 6, 9.59 / 6, 42.97 / 6, 123.21 / 6) '$/ft
+' -----------------------------------------
+
+header_keys = Array("name", "modulus of elasticity", "yield strength", "McMaster", "price")
+material_properties = DS.Zip(materials, elastic_moduli, yield_strengths, mcm_ids, prices_per_lineal_ft)
+Set prop_dictionary = New Scripting.Dictionary
+
+For Each property_set In material_properties
+    Set props_col = DS.Convert(property_set, "Collection", keys:=header_keys)
+    prop_dictionary.Add Key:=props_col("name"), Item:=props_col
+Next property_set
+
+Debug.Print "Analysis Results for .25x.25 in^2 square bar, length: " & l1 & "in"
+Debug.Print "Loading configuration: Point-load, cantilever"
+Debug.Print
+For Each dataset In DS.Zip(prop_dictionary)
+    mat_name = dataset(0) 'material name
+    Set md = dataset(1) 'material dataset
+    max_force = force_at_yield(md("yield strength"), ArMoIn, y_neut, l1)
+    max_defl = deflection_at_yield(max_force, l1, md("modulus of elasticity"), ArMoIn)
+    
+'    Debug.Print "Analysis Results for .25x.25 in^2 [" & mat_name & "] square bar, length: " & l1 & "in"
+    Debug.Print "Material: [" & mat_name & "]"
+    Debug.Print Tab(10); "Yield occurs under [" & Format(CStr(max_force), "#.##") & "] lbs after deflecting [" & Format(CStr(max_defl), "#.###") & "] inches."
+'    Debug.Print Tab(15); "At which point, it will have deflected [" & Format(CStr(max_defl), "#.###") & "] inches."
+    Debug.Print Tab(5); "Price: " & Format(CStr(md("price") * (l1 / 12)), "$#.##")
+    Debug.Print
+Next dataset
+```
+
+> Analysis Results for .25x.25 in^2 square bar, length: 12in
+
+> **Loading configuration**: Point-load, cantilever
+
+<br/>
+
+> **Material**: [Aluminum:Anodized Multipurpose 6061]
+>> Yield occurs under [7.61] lbs after deflecting [1.344] inches.
+
+>> Price: $8.33
+
+**Material**: [Aluminum:Architectural 6063]
+>> Yield occurs under [3.48] lbs after deflecting [.614] inches.
+
+>> Price: $1.05
+
+**Material**: [Aluminum:High-Strength 2024]
+>> Yield occurs under [10.21] lbs after deflecting [1.703] inches.
+
+>> Price: $9.55
+
+**Material**: [Aluminum:Easy-to-Machine 2011]
+>> Yield occurs under [8.26] lbs after deflecting [1.438] inches.
+
+>> Price: $2.99
+
+**Material**: [Low-Carbon Steel Bar 1018]
+>> Yield occurs under [11.74] lbs after deflecting [.698] inches.
+
+>> Price: $1.6
+
+**Material**: [Ultra-Machinable 12L14 Carbon Steel Bars]
+>> Yield occurs under [13.04] lbs after deflecting [.794] inches.
+
+>> Price: $7.16
+
+**Material**: [A2 Tool Steel]
+>> Yield occurs under [11.08] lbs after deflecting [.712] inches.
+
+>> Price: $20.54
 
 <br/>
 
