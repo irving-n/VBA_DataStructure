@@ -931,36 +931,122 @@ Debug.Print Join(Array(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10), ", ")
 ## Match
 
 Mix between Select Case statement & switch Statement
-
+See [Filter] method for compatible operators
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
-| --- | --- | --- |
-| --- | --- | --- |
-| --- | --- | --- |
-| --- | --- | --- |
+| things | Variant | --- |
+| operator | String | --- |
+| matched_value1 | Variant | --- |
+| output1 | Variant | --- |
+| matched_value2 | Variant | --- |
+| output2 | Variant | --- |
+| matching_pairs | ParamArray | any other pairs |
 
-#### Returns:
-> Return
+> This method is roughly equivalent to:
+
 ```VB
-' Comment
-Dim code
+foo = Switch(thing <operator> matched_value1, output1, _
+            thing <operator> matched_value2, output2, _
+            .
+            .
+            .
+            thing <operator> matched_valueN, outputN)
 ```
-> Result
 
+#### Returns: 
+> some specific output
+```VB
+' Example 1: Simple values - Convert Percentage to Letter Grade
+
+Dim grade As String
+Dim score As Variant
+score = 75.64
+grade = DS.Match(score, ">=", _
+                    90, "A", _
+                    80, "B", _
+                    70, "C", _
+                    60, "D", _
+                    score, "Failure")
+Debug.Print "Grade is: " & grade
+' Grade is: C
+```
+
+```VB
+' Example 2: Categorize the SQL statement
+Dim sql1 As String, sql2 As String, sql3 As String
+Dim sql_type As String
+dim sql_statement As Variant
+Dim type_col As Collection
+Set type_col = New Collection
+```
+```SQL
+--sql1
+SELECT * FROM mytable AS T1 WHERE [column1] = 1;
+
+--sql2
+SELECT * FROM mytable AS T1 INNER JOIN yourtable AS T2 ON T1.[column1] = T2.[column1];
+
+--sql3
+DELETE * FROM mytable AS T1 WHERE [column3] = 'delete me';
+```
+
+```VB
+For Each sql_statement In Array(sql1, sql2, sql3)
+    Debug.Print "Type: [" & DS.Match(sql_statement, "like", _
+                                            "*SELECT*FROM*JOIN*ON*", "SELECT JOIN", _
+                                            "*SELECT*FROM*UNION*SELECT*FROM*", "SELECT UNION", _
+                                            "*SELECT*INTO*", "SELECT INTO", _
+                                            "*SELECT*FROM*WHERE*", "SELECT", _
+                                            "*INSERT*INTO*SELECT*", "INSERT SELECT", _
+                                            "*INSERT*INTO*VALUES*", "INSERT VALUES", _
+                                            "*UPDATE*SET*WHERE*", "UPDATE", _
+                                            "*DELETE*FROM*WHERE*", "DELETE") _
+                        & "] - " & sql_statement
+Next sql_statement
+' Output
+' Type: [SELECT] - SELECT * FROM mytable AS T1 WHERE [column1] = 1;
+' Type: [SELECT JOIN] - SELECT * FROM mytable AS T1 INNER JOIN yourtable AS T2 ON T1.[column1] = T2.[column1];
+' Type: [DELETE] - DELETE * FROM mytable AS T1 WHERE [column3] = 'delete me';
+```
+
+#### But why would this be in the data structures class if it couldn't operate on data structures?
+
+```VB
+' Example 3: Operating on a data structure
+' Taking the last example - the following syntax will return an array
+
+Dim multiple_sql_statements As Variant
+Dim categorized As Variant
+
+multiple_sql_statements = Array(sql1, sql2, sql3)
+categorized = DS.Match(multiple_sql_statements, "like", _
+                                            "*SELECT*FROM*JOIN*ON*", "SELECT JOIN", _
+                                            "*SELECT*FROM*UNION*SELECT*FROM*", "SELECT UNION", _
+                                            "*SELECT*INTO*", "SELECT INTO", _
+                                            "*SELECT*FROM*WHERE*", "SELECT", _
+                                            "*INSERT*INTO*SELECT*", "INSERT SELECT", _
+                                            "*INSERT*INTO*VALUES*", "INSERT VALUES", _
+                                            "*UPDATE*SET*WHERE*", "UPDATE", _
+                                            "*DELETE*FROM*WHERE*", "DELETE"))
+Debug.Print "sql1, sql2, & sql3 are " & Join(categorized, ", ") & " types, respectively."
+' sql1, sql2, & sql3 are SELECT, SELECT JOIN, DELETE types, respectively.
+```
 <br/>
-
 
 ***
 ## Maximum
+
+### Returns the maximum value out of all elements in the provided data structure.
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
-| --- | --- | --- |
+| DataStructure | Variant(), Collection, Dictionary | The data structure containing the values to check |
 | --- | --- | --- |
 | --- | --- | --- |
 | --- | --- | --- |
 
-#### Returns:
-> Return
+#### Returns: 
+> Variant
 ```VB
 ' Comment
 Dim code
