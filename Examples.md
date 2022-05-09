@@ -879,7 +879,7 @@ Dim code
 ***
 ## Map
 
-### Pseudo-Terniary value assignment
+### Pseudo-In-line value assignment
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
@@ -929,6 +929,9 @@ Debug.Print Join(Array(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10), ", ")
 
 ***
 ## Match
+
+Mix between Select Case statement & switch Statement
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
