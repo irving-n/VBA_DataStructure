@@ -709,20 +709,79 @@ DS.Fill arr, 5
 
 #### Parameters:
 
-| Variable | Data Type(s) | Description |
-| :---: |:--- |:--- |
-| --- | --- | --- |
-| --- | --- | --- |
-| --- | --- | --- |
-| --- | --- | --- |
+| Variable | Data Type(s) | Optional | Default | Description |
+| :---: |:--- |:--- | --- | --- |
+| DataStructure | Variant(), Collection, Dictionary | No | - | The data structure to filter |
+| operator_expression | String | No | - | The operator, as a string, to apply to the elements of the data structure |
+| compare_against | Variant | No | - | the comparison value to apply the operator against |
+| other_paired_expressions | Variant | Yes | - | No current implementation - in progress |
+| FilterMode | eDataStructureFilterMode | Yes | eFilterTrap | Whether to keep or discard the elements in the supplied data structure that meet the criteria |
+
+#### Enum:
+
+```VB
+Public Enum eDataStructureFilterMode
+    eFilterTrap
+    eFilterOut
+End Enum
+```
 
 #### Returns:
-> Return
+> data structure with [eFilterTrap], or without [eFilterOut] elements meeting the conditional derived from the supplied arguments
+
+#### Quick Examples: 
 ```VB
-' Comment
-Dim code
+Dim arr As Variant
+Dim filtered_arr As Variant
 ```
-> Result
+
+```VB
+' Filter numbers from an array
+arr = Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+
+filtered_arr = DS.Filter(arr, ">", 4) 'FilterMode is unspecified, default (eFilterTrap)
+' 5, 6, 7, 8, 9, 10
+
+filtered_arr = DS.Filter(arr, ">", 4, FilterMode:=eFilterOut)
+' 1, 2, 3, 4
+
+filtered_arr = DS.Filter(arr, "between", Array(3, 8))
+' 3, 4, 5, 6, 7, 8
+
+filtered_arr = DS.Filter(arr, "=", 1)
+' 1
+```
+
+```VB
+' Remove past-tense verbs
+Dim verbs As Variant
+verbs = Array("Look", "Looked", "Filter", "Filtered", "Attempt", "Attempted", "Load", "Loaded")
+filtered_arr = DS.Filter(verbs, "like", "*ed", FilterMode:=eFilterOut)
+' Look, Filter, Attempt, Load
+
+'OR
+filtered_arr = DS.Filter(verbs, "not like", "*ed")
+' Look, Filter, Attempt, Load
+```
+
+## Accepted operator expressions
+| Operator Expression (and aliases) | Expected Comparison | Description |
+| --- | --- | --- |
+| = | Value | Tests for equality |
+| <> | Value | Tests for inequality |
+| is | Value or Object | Tests equality for value variables, tests same reference with objects |
+| is not, isn't | Value or Object | Tests inequality for value variables, tests different reference with objects |
+| > | Number | Tests whether elements are above the comparison value |
+| >= | Number | Tests whether elements are at least the comparison value |
+| < | Number | Tests whether elements are below the comparison value |
+| <= | Number | Tests whether elements are at most the comparison value |
+| like | String | Tests whether string elements resemble the comparison text |
+| not like, liken't | String | Tests whether string elements do not resemble the comparison text |
+| in, is in | Array | Tests whether elements have a match within the comparison array |
+| not in, is not in | Array | Tests whether elements do not have a match within the comparison array |
+| inside, between | Array(low, high) | Tests whether values fall on or within bounds |
+| out, outside, beyond | Array(low, high) | Tests whether values fall out of bounds |
+
 
 <br/>
 
