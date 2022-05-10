@@ -1,6 +1,10 @@
 # **Examples**
 
 ## Table of Contents
+
+<details>
+    <summary>Expand</summary>
+
 [Append](#append)
 <br/>[Apply](#apply)
 <br/>[CharacterArray](#characterarray)
@@ -31,9 +35,12 @@
 <br/>[Transpose](#transpose)
 <br/>[Zip](#zip)
 
+</details>
 
 ## **Notes**
 
+<details>
+    <summary>Expand</summary>
 > Syntax:
   >> For the sake of shorthand & readability, I'll be using the syntax for Python's data structures, lists, tuples, and dictionaries, to represent the class methods' returns that take the form of the VBA data structures, arrays, collections, and dictionaries respectively.
 
@@ -51,10 +58,21 @@ i.e.,
 More detail on the analogue in both **Python** & **VBA** for the above can be found in the appendix.
 ***
 <br/>
+</details>
 
 ## **Methods**
 ## Append
->Adds an element to the end of any of the supported data structures
+
+> Adds an element to the end of any of the supported data structures
+
+### Syntax
+> *DS*.Append(*body*, *appendix*)
+
+### Example
+
+<details>
+    <summary><u>Categorizing a to-do list by adding items to dictionaries</u> (Expand)</summary>
+
 ```VB
 Dim todo_list As Variant
 Dim task As Variant, task_category As String, task_description As String
@@ -95,13 +113,16 @@ Next task
 ```Python
 {'Shoe Rack': '1', 'Detergent': '1 Bottle', 'Milk': '2 Cartons', 'Wool Socks': '4 Pairs', 'Library Books': '3', 'Faulty Speakers': '1'}
 ```
-#### - Adds a single element to the supplied data structure
+
+</details>
 
 <br/>
 
 ***
 
 ## Apply
+
+
 #### Parameters:
 
 | Variable | Data Type(s) | Description |
