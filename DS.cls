@@ -346,6 +346,12 @@ Public Function Copy(DataStructure As Variant, Optional ByVal failOnNestedObject
                           Else
                             Set rtn(i) = Me.Copy(DataStructure(i)) 'Warning: recursive
                         End If
+                      Else
+                        If IsArray(DataStructure(i)) Then
+                            rtn(i) = DS.Copy(DataStructure(i))
+                          Else
+                            rtn(i) = DataStructure(i)
+                        End If
                     End If
                 Next i
         End Select
