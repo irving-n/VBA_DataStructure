@@ -616,6 +616,8 @@ If requires_custom_recipe Then
         & "in addition to standard ingredients: " & Join(edit_recipe.Keys, ", ")
     alert_the_cook alert_message
 End If
+
+'to do: difference method
 ```
 After formatting:
 > Custom recipe for [Chocolate Chip Cookies] is needed.
