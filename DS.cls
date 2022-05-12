@@ -1205,24 +1205,29 @@ On Error GoTo map_clean_up
 
 Dim rtn As Boolean
 Dim ref_var As Variant, i As Integer
-
+Dim limiting_factor As Variant
 If Not IsArray(source_values) Then
     For Each ref_var In variables
         ref_var = source_values
     Next ref_var
     rtn = True
   Else
-    If UBound(source_values) <> UBound(variables) Then Err.Raise 9
-    For i = 0 To UBound(source_values)
+'    If UBound(source_values) <> UBound(variables) Then Err.Raise 9
+    limiting_factor = DS.Minimum(Array(UBound(source_values), UBound(variables)))
+    i = 0
+    Do While i <= limiting_factor
+'    For i = 0 To UBound(source_values)
         variables(i) = source_values(i)
-    Next i
+        i = i + 1
+'    Next i
+    Loop
     rtn = True
 End If
 
 map_clean_up:
 If Err.Number <> 0 Then
     Debug.Print "Error in mapping multiple values across array."
-    Debug.Print "Error [" & Err.Number & "]: " & Err.Description
+    Debug.Print "Error [" & Err.Number & "]: " & Err.description
 End If
 
 Map = rtn
