@@ -9,6 +9,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 #Const conApp = "Microsoft Excel"
+'#Const conApp = "Microsoft Access"
 'TERMS:
 '
 '   DataStructure: A value-variable or object-variable which holds a set of other values/objects
