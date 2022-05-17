@@ -41,6 +41,7 @@
 
 <details>
     <summary>Expand</summary>
+
 > Syntax:
   >> For the sake of shorthand & readability, I'll be using the syntax for Python's data structures, lists, tuples, and dictionaries, to represent the class methods' returns that take the form of the VBA data structures, arrays, collections, and dictionaries respectively.
 
@@ -231,21 +232,27 @@ The data structure converted into whatever format was specified
 
 ```VB
 Dim dict As Scripting.Dictionary
-Dim ingredients() As String
 Dim keys As Variant
-Dim in_stock() As Boolean
+Dim items As Variant
+Dim pairs As Variant
 
 Set dict = New Scripting.Dictionary
+dict.Add Key:="a", Item:=1
+dict.Add Key:="b", Item:=2
+dict.Add Key:="c", Item:=3
 
-
+pairs = DS.Convert(dict, "Variant()")
+Debug.Print TypeName(pairs)
 ```
 
+> Variant()
 
+</br>
 
 #### Example 2: Array(s) to dictionary of collections
 
-#### Napkin-Math, except done in bulk.
-#### **A quick cost-performance analysis: maximum point load under fixed cantilever loading conditions of various metals**
+##### Napkin-Math, except done in bulk.
+##### **A quick cost-performance analysis: maximum point load under fixed cantilever loading conditions of various metals**
 
 
 
