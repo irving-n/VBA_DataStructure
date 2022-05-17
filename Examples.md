@@ -258,7 +258,7 @@ Material property sources:
 
 
 > Length
->> L = 3 ft = 36 in
+>> L = 1 ft = 12 in
 
 > Cross Section 
 >> a = b = 0.25 in (Square)
@@ -343,7 +343,7 @@ For Each dataset In DS.Zip(prop_dictionary)
     max_defl = deflection_at_yield(max_force, l1, md("modulus of elasticity"), ArMoIn)
     
     Debug.Print "Material: [" & mat_name & "]"
-    Debug.Print Tab(10); "Yield occurs under [" & Format(CStr(max_force), "#.##") & "] lbs after deflecting [" & Format(CStr(max_defl), "#.###") & "] inches."
+    Debug.Print Tab(10); "Yield occurs at [" & Format(CStr(max_force), "#.##") & "] lbs with a deflection of [" & Format(CStr(max_defl), "#.###") & "] inches."
 
     Debug.Print Tab(5); "Price: " & Format(CStr(md("price") * (l1 / 12)), "$#.##")
     Debug.Print
@@ -357,37 +357,37 @@ Next dataset
 <br/>
 
 > **Material**: [Aluminum:Anodized Multipurpose 6061]
->> Yield occurs under [7.61] lbs after deflecting [1.344] inches.
+>> Yield occurs at [7.61] lbs with a deflection of [1.344] inches.
 
 >> Price: $8.33
 
-**Material**: [Aluminum:Architectural 6063]
->> Yield occurs under [3.48] lbs after deflecting [.614] inches.
+> **Material**: [Aluminum:Architectural 6063]
+>> Yield occurs at [3.48] lbs with a deflection of [.614] inches.
 
 >> Price: $1.05
 
-**Material**: [Aluminum:High-Strength 2024]
->> Yield occurs under [10.21] lbs after deflecting [1.703] inches.
+> **Material**: [Aluminum:High-Strength 2024]
+>> Yield occurs at [10.21] lbs with a deflection of [1.703] inches.
 
 >> Price: $9.55
 
-**Material**: [Aluminum:Easy-to-Machine 2011]
->> Yield occurs under [8.26] lbs after deflecting [1.438] inches.
+> **Material**: [Aluminum:Easy-to-Machine 2011]
+>> Yield occurs at [8.26] lbs with a deflection of [1.438] inches.
 
 >> Price: $2.99
 
-**Material**: [Low-Carbon Steel Bar 1018]
->> Yield occurs under [11.74] lbs after deflecting [.698] inches.
+> **Material**: [Low-Carbon Steel Bar 1018]
+>> Yield occurs at [11.74] lbs with a deflection of [.698] inches.
 
 >> Price: $1.6
 
-**Material**: [Ultra-Machinable 12L14 Carbon Steel Bars]
->> Yield occurs under [13.04] lbs after deflecting [.794] inches.
+> **Material**: [Ultra-Machinable 12L14 Carbon Steel Bars]
+>> Yield occurs at [13.04] lbs with a deflection of [.794] inches.
 
 >> Price: $7.16
 
-**Material**: [A2 Tool Steel]
->> Yield occurs under [11.08] lbs after deflecting [.712] inches.
+> **Material**: [A2 Tool Steel]
+>> Yield occurs at [11.08] lbs with a deflection of [.712] inches.
 
 >> Price: $20.54
 
