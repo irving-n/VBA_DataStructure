@@ -153,7 +153,7 @@ Dim quote As String
 quote = "All that is gold does not glitter, " & _
         "Not all those who wander are lost"
 arr = DS.CharacterArray(quote)       '['A', 'l', 'l', ' ', 't', 'h', 'a', 't', ... , 'l', 'o', 's', 't']
-obfuscated_text = Join(DS.Apply(arr, "letter_shift", 0), "")
+obfuscated_text = Join(DS.Apply(arr, "shift_vowels", 0), "")
 ```
 > All vowels shifted:
 >> Bll thbt js gpld dpfs npt gljttfr, Npt bll thpsf whp wbndfr brf lpst
@@ -404,7 +404,7 @@ Next dataset
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | DataStructure | Variant(), Collection, Dictionary | The data structure to copy |
-| failOnNestedObjects | Boolean | Pass parameter as True in order to cause the method to return an empty Variant/Collection/Dictionary instead of returning nested references; this will prevent the nested objects from being mutated |
+| failOnNestedObjects | (optional) Boolean | Pass parameter as True in order to cause the method to return an empty Variant/Collection/Dictionary instead of returning nested references; this will prevent the nested objects from being mutated |
 | args | (optional) Variant | *Implementation in progress* - keys if attempting to copy a collection |
 | --- | --- | --- |
 
@@ -999,12 +999,12 @@ See [Filter] method for compatible operators
 > This method is roughly equivalent to:
 
 ```VB
-foo = Switch(thing <operator> matched_value1, output1, _
-            thing <operator> matched_value2, output2, _
+foobar = Switch(foo <operator> bar1, foobar1, _
+            foo <operator> bar2, foobar2, _
             .
             .
             .
-            thing <operator> matched_valueN, outputN)
+            foo <operator> barN, foobarN)
 ```
 
 #### Returns: 
@@ -1354,7 +1354,7 @@ Dim code
 ## Zip
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
-| --- | --- | --- |
+| DataStructures | (ParamArray) Variant() | Several arrays |
 | --- | --- | --- |
 | --- | --- | --- |
 | --- | --- | --- |
@@ -1362,18 +1362,38 @@ Dim code
 #### Returns:
 > Return
 ```VB
-' Comment
-Dim code
+' Example 1: English -> Spanish / French Translator for One - Nine
+Dim English_numbers As Variant
+Dim Spanish_numbers As Variant
+Dim French_numbers As Variant
+Dim triplets As Variant, triple As Variant
+Dim translator As Scripting.Dictionary
+Dim bridge As Collection
+
+English_numbers = Array("Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine")
+
+Spanish_numbers = Array("Cero", "Uno", "Dos", "Tres", "Cuatro", "Cinco", "Seis", "Siete", "Ocho", "Nueve")
+
+French_numbers = Array("Zero", "Un", "Deux", "Trois", "Quatre", "Cinq", "Six", "Sept", "Huit", "Neuf")
+
+triplets = DS.Zip(English_numbers, Spanish_numbers, French_numbers)
+
+Set translator = New Scripting.Dictionary
+For Each triple In triplets
+    Set bridge = New Collection
+    bridge.Add Item:=triple(1), Key:="Spanish"
+    bridge.Add Item:=triple(2), Key:="French"
+    translator.Add Key:=triple(0), Item:=bridge
+Next triple
+
+Debug.Print "'Four' is '" & translator("Four")("Spanish") & "' in Spanish, and '" & translator("Four")("French") & "' in French."
 ```
-> Result
+> 'Four' is 'Cuatro' in Spanish, and 'Quatre' in French.
 
 <br/><br/><br/>
 
 
 # Notes
-
-[^1]: Satire
-
 
 # Appendix
 ## Analagous Shorthand Python-VBA
