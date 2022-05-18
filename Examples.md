@@ -1365,11 +1365,32 @@ tense = "ed"
 intermediary = DS.Apply(verbs, "prep_verb_ends", 0)
 intermediary = DS.PreFixed(intermediary, "Base word: [$] || Tensed: [", subst_placeholder:="$")
 
-intermediary = DS.PostFixed(intermediary, "ed")
+intermediary = DS.PostFixed(intermediary, "ed]")
 ```
 
 <br/>
 
+> Base word: [add] || Tensed: [added]
+
+> Base word: [subtract] || Tensed: [subtracted]
+
+> Base word: [multipli] || Tensed: [multiplied]
+
+> Base word: [divid] || Tensed: [divided]
+
+ English is difficult.
+
+>> Base word: [buy] || Tensed: [buyed]
+
+>> Base word: [sell] || Tensed: [selled]
+
+>> Base word: [loan] || Tensed: [loaned]
+
+>> Base word: [steal] || Tensed: [stealed]
+
+>> Base word: [giv] || Tensed: [gived]
+
+</br>
 
 ***
 ## PreFixed
@@ -1390,7 +1411,7 @@ intermediary = DS.PostFixed(intermediary, "ed")
 Dim code
 ```
 
-See [PostFixed - Example 2](#postfixed) for 
+See [PostFixed - Example 2](#postfixed) for syntax
 > Result
 
 <br/>
@@ -1400,6 +1421,8 @@ See [PostFixed - Example 2](#postfixed) for
 ## Range
 
 [Back to top](#top)
+
+IN PROGRESS
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
@@ -1424,6 +1447,8 @@ Dim code
 
 [Back to top](#top)
 
+IN PROGRESS
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1446,6 +1471,8 @@ Dim code
 ## Resolve
 
 [Back to top](#top)
+
+IN PROGRESS
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
@@ -1470,6 +1497,8 @@ Dim code
 
 [Back to top](#top)
 
+IN PROGRESS
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1492,6 +1521,8 @@ Dim code
 ## Transpose
 
 [Back to top](#top)
+
+IN PROGRESS
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
@@ -1519,8 +1550,6 @@ Dim code
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | DataStructures | (ParamArray) Variant() | Several arrays |
-| --- | --- | --- |
-| --- | --- | --- |
 | --- | --- | --- |
 
 #### Returns:
