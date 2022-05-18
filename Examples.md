@@ -50,9 +50,6 @@
 
 ## **Notes**
 
-<details>
-    <summary>Expand</summary>
-
 > Syntax:
   >> For the sake of shorthand & readability, I'll be using the syntax for Python's data structures, lists, tuples, and dictionaries, to represent the class methods' returns that take the form of the VBA data structures, arrays, collections, and dictionaries respectively.
 
@@ -70,7 +67,7 @@ i.e.,
 More detail on the analogue in both **Python** & **VBA** for the above can be found in the appendix.
 ***
 <br/>
-</details>
+
 
 ## **Methods**
 ## Append
@@ -84,8 +81,7 @@ More detail on the analogue in both **Python** & **VBA** for the above can be fo
 
 ### Example
 
-<details>
-    <summary><u>Categorizing a to-do list by adding items to dictionaries</u> (Expand)</summary>
+Categorizing a to-do list by adding items to dictionaries
 
 ```VB
 Dim todo_list As Variant
@@ -1161,13 +1157,15 @@ Debug.Print "sql1, sql2, & sql3 are " & Join(categorized, ", ") & " types, respe
 | --- | --- | --- |
 | --- | --- | --- |
 
-#### Returns: 
+#### Returns: Variant
 > Variant
 ```VB
-' Comment
-Dim code
+' Example 1
+Dim arr
+arr = Array(5, 2, 7, 8, 1, 100)
+Debug.Print DS.Maximum(arr)
 ```
-> Result
+> 100
 
 <br/>
 
@@ -1176,6 +1174,9 @@ Dim code
 ## Merge
 
 [Back to top](#top)
+
+
+IN PROGRESS
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
@@ -1202,18 +1203,20 @@ Dim code
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
-| --- | --- | --- |
+| DataStructure | Variant | Array containing numeric values |
 | --- | --- | --- |
 | --- | --- | --- |
 | --- | --- | --- |
 
-#### Returns:
+#### Returns: Variant
 > Return
 ```VB
-' Comment
-Dim code
+' Example 1
+Dim arr
+arr = Array(-4, 6, 3, 100)
+Debug.Print(DS.Minimum(arr))
 ```
-> Result
+> -4
 
 <br/>
 
@@ -1222,6 +1225,8 @@ Dim code
 ## Ones
 
 [Back to top](#top)
+
+PENDING/IN PROGRESS
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
@@ -1243,6 +1248,8 @@ Dim code
 
 ***
 ## Outersection
+
+IN PROGRESS
 
 [Back to top](#top)
 
@@ -1271,18 +1278,37 @@ Dim code
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
-| --- | --- | --- |
-| --- | --- | --- |
+| DataStructure | Dictionary, Collection, Variant | data structure to modify |
+| index | Integer | Base-0 position of element to pop out |
 | --- | --- | --- |
 | --- | --- | --- |
 
 #### Returns:
 > Return
 ```VB
-' Comment
-Dim code
+' Example
+
+Dim arr As Variant, elem As Variant
+arr = Array("first", "second", "third")
+Debug.Print "The array starts with a UBound of [" & UBound(arr) & "]"
+
+elem = DS.Pop(arr, 0)
+
+Debug.Print "[" & elem & "] popped out of the array! The array now has a UBound of [" & UBound(arr) & "]"
+
+elem = DS.Pop(arr, 1)
+Debug.Print "[" & elem & "] popped out of the array (from the end)! The array now has a UBound of [" & UBound(arr) & "]"
+
+elem = DS.Pop(arr, 0)
+Debug.Print "[" & elem & "] popped out of the array! The array is now empty."
 ```
-> Result
+> The array starts with a UBound of [2]
+
+> [first] popped out of the array! The array now has a UBound of [1]
+
+> [third] popped out of the array (from the end)! The array now has a UBound of [0]
+
+> [second] popped out of the array! The array is now empty with a UBound of [-1]
 
 <br/>
 
