@@ -89,10 +89,23 @@ End Function
 
 
 Public Function Apply(DataStructure_arr As Variant, funcName As String, elem_arg_idx_pos As Integer, ParamArray args() As Variant) As Variant
-'Note - this function is experimental
+'Syntax:
+'   output = DS.Apply(old_arr, '<some function name as a string>', index_pos, remaining arguments)
+
+'elem_arg_idx_pos: (BASE 0) Refers to the placement of arguments from the data structure into the desired function
+
+'For example: function InStr:
+'arr_of_strings = Array("aaaa FIND_ME aaaa", "aa FIND_ME aa", "aaa FIND_ME aaa", "aaaaaaaa")
+
+'To get the string position of FIND_ME within each of the strings contained in this array:
+'string_positions = DS.Apply(arr_of_strings, "InStr", 1, 1, "FIND_ME")
+'   Outputs: (6, 4, 5, 0)
+
+
     Dim ub As Integer, i As Integer, j As Integer, arg_count As Integer, total_args_count As Integer, xfer_ceiling As Integer
     Dim funcString As String
     Dim rtn As Variant, args_xfer As Variant, val As Variant
+    Dim delm As String
     Dim compile_col As Collection, funcPart_col As Collection
     Dim this_app As Application
     
@@ -162,28 +175,44 @@ Public Function Apply(DataStructure_arr As Variant, funcName As String, elem_arg
             Case Else: Debug.Print "Please edit code to add more arguments, follow the same pattern and it should work."
         End Select
         If Err.number <> 0 Then
-            funcString = funcName & "("
-            Set funcPart_col = New Collection
-            For Each val In args_xfer
-                If TypeName(val) = "String" Then
-                    funcPart_col.Add "'" & val & "'"
-                  ElseIf IsObject(val) Then
-                    'uh oh
-                  ElseIf IsNull(val) Then
-                    val = "Null"
+            If DS.Exists(funcName, Array("Join", "Split")) Then
+                Set funcPart_col = New Collection
+                For Each val In args_xfer
+                    funcPart_col.Add val
+                Next val
+                
+                If funcPart_col.count > 1 Then delm = funcPart_col(2) Else delm = " "
+                
+                If funcName = "Join" Then
+                    compile_col.Add ITEM:=Join(funcPart_col(1), delm)
                   Else
-                    If Not IsEmpty(val) Then funcPart_col.Add val
+                    compile_col.Add ITEM:=split(funcPart_col(1), delm)
                 End If
-            Next val
-            funcString = funcString & Join(CollectionToArray(funcPart_col), ", ") & ")"
-            'Set this_app = Application
-            
-            #If conApp = "Microsoft Excel" Then
-                compile_col.Add ITEM:=Application.Evaluate(funcString)
-            #Else
-                compile_col.Add ITEM:=Eval(funcString)
-'                Debug.Print "Not Excel!!!"
-            #End If
+              Else
+                funcString = funcName & "("
+                Set funcPart_col = New Collection
+                For Each val In args_xfer
+                    If TypeName(val) = "String" Then
+                        funcPart_col.Add "'" & val & "'"
+                      ElseIf IsObject(val) Then
+                        'uh oh
+                      ElseIf IsNull(val) Then
+                        val = "Null"
+                      Else
+                        If Not IsEmpty(val) Then funcPart_col.Add val
+                    End If
+                Next val
+                funcString = funcString & Join(CollectionToArray(funcPart_col), ", ") & ")"
+                'Set this_app = Application
+                
+                #If conApp = "Microsoft Excel" Then
+                    compile_col.Add ITEM:=Application.Evaluate(funcString)
+                #Else
+                    compile_col.Add ITEM:=Eval(funcString)
+    '                Debug.Print "Not Excel!!!"
+                #End If
+            End If
+
             
             Err.Clear
         End If
