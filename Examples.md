@@ -1320,18 +1320,53 @@ Debug.Print "[" & elem & "] popped out of the array! The array is now empty."
 
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
-| --- | --- | --- |
-| --- | --- | --- |
-| --- | --- | --- |
-| --- | --- | --- |
+| postfixables | Variant(), String() | An array of strings which need to be modified |
+| postfix | String | The string which will be applied to the beginning of each element in postfixables |
+| apply_to_dict_keys | Boolean | Not yet implemented |
+| subst_placeholder | String | A pattern to replace with each element of postfixable within the given postfix |
 
-#### Returns:
+#### Returns: Variant
 > Return
 ```VB
-' Comment
-Dim code
+' Example - basic syntax with no substitution
+Dim verbs As Variant, tense As String, verbeds As Variant
+verbs = Array("add", "subtract", "multiply", "divide")
+tense = "ed"
+verbeds = DS.PostFixed(verbs, tense)
 ```
-> Result
+
+```Python
+["added", "subtracted", "multiplyed", "divideed"]  # These look a little strange
+```
+
+```VB
+' Example 2 - With substitution and match
+```
+Given a function that chops off the vowel ends of words:
+
+```VB
+Public Function prep_verb_ends(ByVal verb As String) As String
+    Dim modified_verb As String
+    modified_verb = DS.Match(verb, "like", _
+                                        "*[!aeiou]y", Left(verb, len(verb)-1) & "i", _
+                                        "*e", Left(verb, len(verb)-1), _
+                                        verb, verb)
+    prep_verb_ends = modified_verb
+End Function
+```
+```VB
+Dim verbs As Variant
+Dim tense As String
+Dim intermediary As Variant
+Dim verbeds As Variant
+
+verbs = Array("add", "subtract", "multiply", "divide", "buy", "sell", "loan", "steal", "give")
+tense = "ed"
+intermediary = DS.Apply(verbs, "prep_verb_ends", 0)
+intermediary = DS.PreFixed(intermediary, "Base word: [$] || Tensed: [", subst_placeholder:="$")
+
+intermediary = DS.PostFixed(intermediary, "ed")
+```
 
 <br/>
 
@@ -1351,9 +1386,11 @@ Dim code
 #### Returns:
 > Return
 ```VB
-' Comment
+' Example 1
 Dim code
 ```
+
+See [PostFixed - Example 2](#postfixed) for 
 > Result
 
 <br/>
