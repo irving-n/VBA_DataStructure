@@ -1,4 +1,15 @@
+# Class: DS
+#### **D**ata **S**tructure
+<a>
+
+##### Top
+
+</a>
+</br>
+
 # **Examples**
+
+
 
 ## Table of Contents
 
@@ -64,6 +75,8 @@ More detail on the analogue in both **Python** & **VBA** for the above can be fo
 ## **Methods**
 ## Append
 
+[Back to top](#top)
+
 > Adds an element to the end of any of the supported data structures
 
 ### Syntax
@@ -122,6 +135,9 @@ Next task
 ***
 
 ## Apply
+
+
+[Back to top](#top)
 
 
 #### Parameters:
@@ -187,6 +203,11 @@ Application.Evaluate("2*" & "(" & element & ")") 'Where [element] is the control
 ***
 
 ## CharacterArray
+
+
+[Back to top](#top)
+
+
 #### Parameters:
 
 | Variable | Data Type(s) | Description |
@@ -213,6 +234,9 @@ all_characters = DS.CharacterArray(book_title)
 
 ***
 ## Convert
+
+[Back to top](#top)
+
 #### Parameters:
 
 | Variable | Data Type(s) | Description |
@@ -402,6 +426,9 @@ Next dataset
 
 ***
 ## Copy
+
+[Back to top](#top)
+
 #### Parameters:
 
 #### N.b.:
@@ -479,6 +506,9 @@ Debug.Print "The number 2 is " & new_dict("2")              'even
 
 ***
 ## Enumerate
+
+[Back to top](#top)
+
 #### Parameters:
 
 | Variable | Data Type(s) | Default | Description |
@@ -567,6 +597,9 @@ Next pair
 
 ***
 ## Equivalent
+
+[Back to top](#top)
+
 #### Parameters:
 
 | Variable | Data Type(s) | Description |
@@ -670,6 +703,9 @@ After formatting:
 ***
 
 ## Exists
+
+[Back to top](#top)
+
 #### Parameters:
 
 | Variable | Data Type(s) | Description |
@@ -732,6 +768,9 @@ After formatting:
 ***
 
 ## Fill
+
+[Back to top](#top)
+
 #### Parameters:
 
 | Variable | Data Type(s) | Description |
@@ -767,6 +806,8 @@ DS.Fill arr, 5
 
 ***
 ## Filter
+
+[Back to top](#top)
 
 #### Parameters:
 
@@ -855,6 +896,9 @@ filtered_arr = DS.Filter(verbs, "not like", "*ed")
 
 ***
 ## Flatten
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -881,6 +925,8 @@ flattened = DS.Flatten(nested)
 
 ***
 ## Homogeneous
+
+[Back to top](#top)
 
 ### TypeName checks all elements within a data structure and returns the typename if they're the same type, otherwise returns False
 #### Debating whether to change the return to empty string (?) on mismatch
@@ -918,6 +964,9 @@ Debug.Print "Type is: " & DS.Homogeneous(thing1, thing2, thing3, thing4, thing5,
 ***
 ## Intersection
 
+[Back to top](#top)
+
+
 ' IN PROGRESS
 
 | Variable | Data Type(s) | Description |
@@ -939,6 +988,8 @@ Dim code
 
 ***
 ## Map
+
+[Back to top](#top)
 
 ### Pseudo-In-line value assignment
 
@@ -990,6 +1041,8 @@ Debug.Print Join(Array(n1, n2, n3, n4, n5, n6, n7, n8, n9, n10), ", ")
 
 ***
 ## Match
+
+[Back to top](#top)
 
 Mix between Select Case statement & switch Statement
 See [Filter] method for compatible operators
@@ -1097,6 +1150,8 @@ Debug.Print "sql1, sql2, & sql3 are " & Join(categorized, ", ") & " types, respe
 ***
 ## Maximum
 
+[Back to top](#top)
+
 ### Returns the maximum value out of all elements in the provided data structure.
 
 | Variable | Data Type(s) | Description |
@@ -1119,6 +1174,9 @@ Dim code
 
 ***
 ## Merge
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1139,6 +1197,9 @@ Dim code
 
 ***
 ## Minimum
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1159,6 +1220,9 @@ Dim code
 
 ***
 ## Ones
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1179,6 +1243,9 @@ Dim code
 
 ***
 ## Outersection
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1199,6 +1266,9 @@ Dim code
 
 ***
 ## Pop
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1219,6 +1289,9 @@ Dim code
 
 ***
 ## PostFixed
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1239,6 +1312,9 @@ Dim code
 
 ***
 ## PreFixed
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1259,6 +1335,9 @@ Dim code
 
 ***
 ## Range
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1279,6 +1358,9 @@ Dim code
 
 ***
 ## Remove
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1299,6 +1381,9 @@ Dim code
 
 ***
 ## Resolve
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1319,6 +1404,9 @@ Dim code
 
 ***
 ## Reverse
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1339,6 +1427,9 @@ Dim code
 
 ***
 ## Transpose
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | --- | --- | --- |
@@ -1359,6 +1450,9 @@ Dim code
 
 ***
 ## Zip
+
+[Back to top](#top)
+
 | Variable | Data Type(s) | Description |
 | :---: |:--- |:--- |
 | DataStructures | (ParamArray) Variant() | Several arrays |
@@ -1397,12 +1491,16 @@ Debug.Print "'Four' is '" & translator("Four")("Spanish") & "' in Spanish, and '
 ```
 > 'Four' is 'Cuatro' in Spanish, and 'Quatre' in French.
 
-<br/><br/><br/>
+<br/><br/>
 
+[Back to top](#top)
 
 # Notes
 
 # Appendix
+
+
+
 ## Analagous Shorthand Python-VBA
 ### Array ~ List
 ```VB
