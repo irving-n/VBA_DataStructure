@@ -33,11 +33,14 @@ End Sub
 'METHODS
 
 Public Function Append(ByRef body As Variant, ByRef appendix As Variant) As Variant
+    'Syntax:
+    '   new_arr = DS.Append(old_arr, new_elem)
+    
     Dim output_type As String
     Dim arr As Variant, pend As Variant
     Dim current_ubound As Long, new_ubound As Long, k As Long
     Dim newkey As String
-    
+
     
 On Error GoTo Append_clean_up
 
@@ -184,9 +187,17 @@ Public Function Apply(DataStructure_arr As Variant, funcName As String, elem_arg
                 If funcPart_col.count > 1 Then delm = funcPart_col(2) Else delm = " "
                 
                 If funcName = "Join" Then
-                    compile_col.Add ITEM:=Join(funcPart_col(1), delm)
+                    If delm = vbCrLf Then
+                        compile_col.Add ITEM:=Join(funcPart_col(1), vbCrLf)
+                      Else
+                        compile_col.Add ITEM:=Join(funcPart_col(1), delm)
+                    End If
                   Else
-                    compile_col.Add ITEM:=split(funcPart_col(1), delm)
+                    If delm = vbCrLf Then
+                        compile_col.Add ITEM:=split(funcPart_col(1), vbCrLf)
+                      Else
+                        compile_col.Add ITEM:=split(funcPart_col(1), delm)
+                    End If
                 End If
               Else
                 funcString = funcName & "("
@@ -224,7 +235,9 @@ End Function
 
 
 Public Function CharacterArray(ByVal text As String) As Variant
-
+'Syntax
+'   arr = DS.CharacterArray("abcdefg")
+'>> ("a", "b", "c", "d", "e", "f", "g")
     Dim strlen As Integer, i As Integer
     Dim rtn() As Variant
     strlen = Len(text)
@@ -285,6 +298,8 @@ On Error GoTo Convert_clean_up
             On Error GoTo Convert_clean_up
         Case "Variant()"
             rtn = Me.Apply(tmpArr, "CVar", 0)
+        Case "String()"
+            rtn = Me.Apply(tmpArr, "CStr", 0)
         Case "Byte()"
             rtn = Me.Apply(tmpArr, "CByte", 0)
         Case "Integer()"
@@ -627,7 +642,7 @@ Public Function Enumerate(enumerable As Variant, Optional ByVal starting_idx As 
 On Error GoTo enumerate_clean_up
 
     Dim typed_name As String
-    Dim val As Variant, i As Integer
+    Dim val As Variant, i As Long '6/22/22..ian Integer -> Long
     Dim tmp_col As Collection
     Dim rtn As Variant
 
@@ -643,13 +658,13 @@ On Error GoTo enumerate_clean_up
         Case "Variant()", "String()", "Integer()", "Double()", _
                 "Single()", "Byte()", "Long()", "Collection":
             For Each val In enumerable
+                i = i + increment '6/22/22..ian Fixed increment of 1 to variable increment
                 tmp_col.Add ITEM:=Array(i, val)
-                i = i + 1
             Next val
         Case "Dictionary":
             For Each val In enumerable.Items
+                i = i + increment '6/22/22..ian Fixed increment of 1 to variable increment
                 tmp_col.Add ITEM:=Array(i, val)
-                i = i + 1
             Next val
         Case Else:
             'incompatible
@@ -864,24 +879,57 @@ End Function
 
 
 Public Function Filter(DataStructure As Variant, ByVal operator_expression As String, compare_against As Variant, _
-                                Optional ByRef other_paired_expressions As Variant, _
+                                Optional ByRef args As Variant, _
                                 Optional ByVal FilterMode As eDataStructureFilterMode = eFilterTrap) As Variant
+
+'EXAMPLE - Simple, 6/22/22
+    'Given an array containing names of fruit, filter for fruit that start with the letter 'a':
+'
+'fruit_array = Array("Orange", "Apricot", "Apple", "Pear", "Strawberry", "Watermelon")
+'fruit_starting_with_a = DS.Filter(fruit_array, "like", "A*")
+    'RESULT
+'>> ("Apricot", "Apple")
+
+'EXAMPLE - Compound, 6/22/22
+    'Given ALL series present on a customer's order, filter the series that belong to the sliding door department
+'
+'quote_series = Array("1000", "3200-T", "3070", "3070-T", "Edge_s", "3900-T", "Edge_f", "4800-T")
+'filter_series = Array("10##*", "30##*", "4070-T", "Edge_s")
+'
+'output = DS.Filter(quote_series, "like[or]", filter_series)
+    'RESULT
+'>> ("1000", "3070", "3070-T", "Edge_s")
+
 On Error GoTo Filter_clean_up
-    Dim COLander As Collection
-    Dim arr As Variant, val As Variant, thing As Variant
-    Dim rtn As Variant
-    Dim operand_isDataStructure As Boolean
     
+
+    Dim COLander As Collection
+    Dim arr As Variant, val As Variant, thing As Variant, compared_part As Variant, pair As Variant
+    Dim rtn As Variant
+    Dim target_values As String, base_comparison As Variant
+    Dim sub_operator As String
+    Dim keep_thing As Boolean, operand_isDataStructure As Boolean
+    '6/22/22..ian Added compounding operators ( <operator>[or], <operator>[and] )
+    '6/22/22..ian Missing/invalid operators "out"
+    '6/22/22..ian Removed unused comments
+    '6/22/22..ian Added Examples (detailed documentation can still be found on the U-Drive, see top of module)
+
     If Not isDataStructure(DataStructure, accept_typename:=False) Then
         GoTo Filter_clean_up
       Else
         If TypeName(DataStructure) = "Dictionary" Then
-            'more complicated
+            arr = DS.Zip(DataStructure)
+            target_values = DS.Match(args, "=", _
+                                                    "key", "key", _
+                                                    "item", "item", _
+                                                    args, "item")
           ElseIf TypeName(DataStructure) = "Collection" Then
 
             arr = Me.Convert(DataStructure, "Variant()")
+            target_values = "standard"
           Else
             arr = DataStructure
+            target_values = "standard"
         End If
     End If
     
@@ -931,37 +979,102 @@ On Error GoTo Filter_clean_up
                                                                                                         ">=", "<", _
                                                                                                         "like", "not like", _
                                                                                                         "not like", "like", _
-                                                                                                        "in", "out", _
-                                                                                                        "out", "in")
+                                                                                                        "in", "not in", _
+                                                                                                        "not in", "in")
                     'Reverse
                 End If
-                For Each thing In DataStructure
-                    If Resolve(thing, LCase(operator_expression), compare_against) Then
+                
+                For Each thing In arr
+                    Select Case target_values
+                        Case "standard"
+                            If IsObject(thing) Then Set base_comparison = thing Else base_comparison = thing
+                        Case "key"
+                            base_comparison = thing(0) 'key can't be an object
+                        Case "item"
+                            If IsObject(thing(1)) Then Set base_comparison = thing(1) Else base_comparison = thing(1)
+                        Case Else: 'uh oh
+                    End Select
+                    
+                    If Resolve(base_comparison, LCase(operator_expression), compare_against) Then
                         COLander.Add thing
                       Else
                         'Don't add
                     End If
+                    
                 Next thing
+                
             End If
-'
-'        Case "<>"
-'        Case "is", "Is", "IS" 'Objects only
-'
-'        Case "is not", "Is Not", "IS NOT"
-'        Case ">"
-'        Case ">="
-'        Case "<"
-'        Case "<="
-'        Case "like", "Like", "LIKE"
-'        Case "not like", "Not Like", "NOT LIKE"
-        Case "like[or]" ', "Like[Or]", "LIKE[OR]"
-        Case "like[and]" ', "Like[And]", "LIKE[AND]"
-        Case "like[xor]" ', "Like[Xor]", "LIKE[XOR]"
-        Case "like[xand]" ', "Like[Xand]", "LIKE[XAND]"
-'        Case "in", "In", "IN"
-'        Case "not in", "Not In", "NOT IN"
-'        Case "between", "inside"
-'        Case "beyond", "out", "outside"
+
+        Case ">[and]", ">=[and]", _
+                "<[and]", "<=[and]", _
+                "like[and]", "not like[and]", _
+                "in[and]", "not in[and]", _
+                "is[and]", "is not[and]", _
+                "=[and]", "<>[and]" '6/22/22..ian Added compound operators
+            sub_operator = Replace(operator_expression, find:="[and]", Replace:="")
+            If FilterMode = eFilterOut Then
+                sub_operator = DS.Match(sub_operator, "=", _
+                                                            "=", "<>", "<>", "=", _
+                                                            ">", "<=", ">=", "<", _
+                                                            "like", "not like", _
+                                                            "not like", "like", _
+                                                            "in", "not in", "not in", "in", _
+                                                            "is", "is not", "is not", "is")
+            End If
+
+            For Each thing In arr
+
+                Select Case target_values
+                    Case "standard": If IsObject(thing) Then Set base_comparison = thing Else base_comparison = thing
+                    Case "key": base_comparison = thing(0)
+                    Case "item": If IsObject(thing(1)) Then Set base_comparison = thing Else base_comparison = thing(1)
+                    Case Else: 'uh oh
+                End Select
+                
+                keep_thing = True
+                For Each compared_part In compare_against
+                    If Not Resolve(base_comparison, sub_operator, compared_part) Then
+                        keep_thing = False
+                        Exit For
+                    End If
+                Next compared_part
+                If keep_thing Then COLander.Add thing
+            Next thing
+            
+        Case ">[or]", ">=[or]", _
+                "<[or]", "<=[or]", _
+                "like[or]", "not like[or]", _
+                "in[or]", "not in[or]", _
+                "is[or]", "is not[or]", _
+                "=[or]", "<>[or]" '6/22/22..ian Added compound operators
+            sub_operator = Replace(operator_expression, find:="[or]", Replace:="")
+            If FilterMode = eFilterOut Then
+                sub_operator = DS.Match(sub_operator, "=", _
+                                                            "=", "<>", "<>", "=", _
+                                                            ">", "<=", ">=", "<", _
+                                                            "like", "not like", _
+                                                            "not like", "like", _
+                                                            "in", "not in", "not in", "in", _
+                                                            "is", "is not", "is not", "is")
+            End If
+            
+            For Each thing In arr
+            
+                Select Case target_values
+                    Case "standard": If IsObject(thing) Then Set base_comparison = thing Else base_comparison = thing
+                    Case "key": base_comparison = thing(0)
+                    Case "item": If IsObject(thing(1)) Then Set base_comparison = thing Else base_comparison = thing(1)
+                    Case Else: 'uh oh
+                End Select
+                
+                For Each compared_part In compare_against
+                    If Resolve(base_comparison, sub_operator, compared_part) Then
+                        COLander.Add thing
+                        Exit For
+                    End If
+                Next compared_part
+            Next thing
+            
         Case Else
     End Select
     
@@ -980,59 +1093,6 @@ Filter_clean_up:
         Filter = rtn
     End If
 End Function
-
-
-'Public Function Old_Flatten(embedded_DataStructure As Variant, Optional ByVal OutputType As String = "") As Variant
-'    'Flattens to an array
-'    Dim recursive_col As Collection
-'    Dim rtn As Variant
-'    Dim thing As Variant, validated_DataStructure As Variant
-'    Dim rtn_type As String
-'
-'    If isDataStructure(embedded_DataStructure) Then
-'        If isDataStructure(OutputType) Then
-'            rtn_type = OutputType
-'          Else
-'            rtn_type = TypeName(embedded_DataStructure)
-'        End If
-'      Else
-'        Set Old_Flatten = Nothing
-'        Exit Function
-'    End If
-'
-'    Set recursive_col = New Collection
-'
-'    If TypeName(embedded_DataStructure) = "Dictionary" Then
-'        validated_DataStructure = Zip(embedded_DataStructure)
-'      Else
-'        On Error Resume Next
-'        validated_DataStructure = embedded_DataStructure
-'        If Err.Number <> 0 Then
-'            Err.Clear
-'            Set validated_DataStructure = embedded_DataStructure
-'        End If
-'    End If
-'
-'    For Each thing In validated_DataStructure
-'        If isDataStructure(thing) Then
-'            Set recursive_col = Merge(recursive_col, Old_Flatten(thing))
-'          Else
-'            recursive_col.Add Item:=thing
-'        End If
-'    Next thing
-'
-'    If TypeName(recursive_col) <> rtn_type Then
-'        On Error Resume Next
-'        Set rtn = Convert(recursive_col, rtn_type)
-'        If Err.Number <> 0 Then
-'            Err.Clear
-'            rtn = Convert(recursive_col, rtn_type)
-'        End If
-'      Else
-'        Set rtn = Convert(recursive_col, rtn_type)
-'    End If
-'
-'End Function
 
 
 Public Function Flatten(DataStructure As Variant) As Variant 'Returns a flattened array
@@ -1087,92 +1147,180 @@ Flatten_clean_up:
 End Function
 
 
-Public Function GuiltyByAssociation(associated_DataStructure As Variant, DataStructure As Variant, ByVal operator_expression As String, compare_against As Variant, ParamArray other_args() As Variant) As Variant
-
-End Function
-
-
-Public Function Intersection(ParamArray DataStructures() As Variant) As Variant
-    'Get common elements between 2 or more DataStructure items
-    'Dictionaries & collections will be compared by items and not by keys
-    'Caution - potentially expensive operation
-    'Requires homogeneous parameters, i.e., same type
+Public Function Formatted(arr As Variant, ByVal formatted_text As String, placeholder As Variant, _
+                                        Optional ByVal substitute_null_or_invalid_with As Variant = "", _
+                                        Optional ByVal vba_format As String = "", _
+                                        Optional ByVal vba_firstdayofweek As Integer = 1, _
+                                        Optional ByVal vba_firstweekofyear As Integer = 1) As Variant
+'6/22/22..ian Release
     
-    Dim master_collection As Collection
-    Dim dict As Scripting.Dictionary
-    Dim DataStructure As Variant, thing As Variant
-    Dim i As Long, j As Long
-    Dim arr As Variant, structure As Variant, main_structure As Variant
-    Dim homCol As Collection
-    Dim rtn As Variant
+    'if provided, vb_format applies the built-in VBA format function to the datastructure element BEFORE applying the [formatted_text] argument
+    'vba_format represents the [Format] argument in the function syntax for Format(Expression, [Format], ...
+
+'-----------------------------------------------------------
+'-------------------    EXAMPLES ------------------------
+'SIMPLE SYNTAX:
+'Dim arr As Variant
+'arr = Array(1, "abc", Null, -0.5, myObject)
+'arr = DS.Formatted(arr, "My string is: [$]", "$")
     
-On Error GoTo Intersection_clean_up
-    Set homCol = New Collection
-    For Each thing In DataStructures
-        homCol.Add thing
-    Next thing
+'Debug.Print Join(arr, VbCrLf)
     
-    Set master_collection = New Collection 'compile master_collection as a group of like-formatted data structures - copied!! treats as immutable
-    If Homogeneous(homCol) = "False" Then
-        GoTo Intersection_clean_up
+'>> My string is: [1]
+'>> My string is: [abc]
+'>> My string is: []
+'>> My string is: [-0.5]
+'>> My string is: []
+
+
+'LAYERED SYNTAX:
+'Dim first_halves As Variant, second_halves As Variant, pairs As Variant, output As Variant
+'
+'first_halves = Array("Jack", "Rosemary", "Bread", "Half")
+'second_halves = Array("Jill", "Thyme", "Butter", "Half")
+'
+'pairs = DS.Zip(first_halves, second_halves)
+'
+'output = DS.Formatted(pairs, "$1 and $2", Array("$1", "$2"))
+'Debug.Print Join(output, vbCrLf)
+'>> Jack and Jill
+'>> Rosemary and Thyme
+'>> Bread and Butter
+'>> Half and Half
+
+'-----------------------------------------------------------
+
+Dim copied_arr As Variant
+Dim transposed As Variant
+Dim imposter As Variant
+Dim fill_arr As Variant, rtn As Variant
+Dim i As Long, j As Long, err_count As Integer
+
+On Error GoTo Formatted_clean_up
+    
+    If Not IsArray(arr) And (Not IsArray(placeholder)) Then
+        imposter = arr
+        rtn = Replace(formatted_text, placeholder, imposter)
+        GoTo Formatted_clean_up
+    End If
+    
+    fill_arr = DS.fill(UBound(arr) + 1, formatted_text)
+    If Not IsArray(placeholder) Then
+        fill_arr = apply_formats(fill_arr, placeholder, arr)
       Else
-        For Each structure In homCol
-            master_collection.Add Me.Copy(structure) 'Note the copy call here - this allows the object reference to remain unmutated
-        Next structure
+        transposed = DS.Transpose(arr)
+        For i = 0 To UBound(placeholder)
+            fill_arr = apply_formats(fill_arr, placeholder(i), transposed(i))
+        Next i
+        
     End If
     
-    If master_collection.count <= 1 Then 'Haven't decided what to do about calling an intersection on a singular item
-        'if preventing user from calling method on a singular item, should change the parameters to DataStructure1, DataStructure2, paramarray others() as variant
-        GoTo Intersection_clean_up
-    End If
-    For i = 1 To master_collection.count
-        Set main_structure = master_collection(i)
-        For Each thing In main_structure
-            'if thing exists in each one (use the resolve method) then add it to the yes pile, otherwise add it to the no pile
-                
-            'then remove the thing from all structures in master_collection
-            For j = (i + 1) To master_collection.count
-                
-            Next j
-        Next thing
-    Next i
-'    Select Case Homogeneous(homCol)
-'        Case "False"
-'            GoTo Intersection_clean_up
-'        Case "Dictionary", "Collection"
-'            'Proper format already
-'            'COPY EACH DataStructure
-'            For Each structure In homCol
-'                Set thing = Me.Copy(structure)
-'                master_collection.Add thing
-'            Next structure
-'
-'        Case Else
-'            For Each thing In homCol
-'                master_collection.Add Me.Copy(thing)
-'            Next thing
-'
-'    End Select
-
-'Once all data structures are compiled, go through each one; sorting them into two separate piles
-'Pile 1 contains items that exist in ALL of the data structures; Pile 2 contains items that don't exist in all data structures
-'The main master_collection group should be un-stacked with each pass through in order to reduce the total iterations
-
-       
-Intersection_clean_up:
+    rtn = fill_arr
+    
+Formatted_clean_up:
     If Err.number <> 0 Then
+        err_count = err_count + 1
         Debug.Print "Error [" & Err.number & "]: " & Err.description
         Err.Clear
+        
+        If err_count > 500 Then
+            Exit Function
+          Else
+            Resume Next
+        End If
     End If
     
-    If IsObject(rtn) Then
-        Set Intersection = rtn
-      Else
-        Intersection = rtn
-    End If
-    'Add to a collection of dictionaries so that the dictionaries can be paired down
+    Formatted = rtn
 End Function
 
+
+'********************************************
+'   IN PROGRESS
+'
+'Public Function Intersection(ParamArray DataStructures() As Variant) As Variant
+'    'Get common elements between 2 or more DataStructure items
+'    'Dictionaries & collections will be compared by items and not by keys
+'    'Caution - potentially expensive operation
+'    'Requires homogeneous parameters, i.e., same type
+'
+'    Dim master_collection As Collection
+'    Dim dict As Scripting.Dictionary
+'    Dim DataStructure As Variant, thing As Variant
+'    Dim i As Long, j As Long
+'    Dim arr As Variant, structure As Variant, main_structure As Variant
+'    Dim homCol As Collection
+'    Dim rtn As Variant
+'
+'On Error GoTo Intersection_clean_up
+'    Set homCol = New Collection
+'    For Each thing In DataStructures
+'        homCol.Add thing
+'    Next thing
+'
+'    Set master_collection = New Collection 'compile master_collection as a group of like-formatted data structures - copied!! treats as immutable
+'    If Homogeneous(homCol) = "False" Then
+'        GoTo Intersection_clean_up
+'      Else
+'        For Each structure In homCol
+'            master_collection.Add Me.Copy(structure) 'Note the copy call here - this allows the object reference to remain unmutated
+'        Next structure
+'    End If
+'
+'    If master_collection.count <= 1 Then 'Haven't decided what to do about calling an intersection on a singular item
+'        'if preventing user from calling method on a singular item, should change the parameters to DataStructure1, DataStructure2, paramarray others() as variant
+'        GoTo Intersection_clean_up
+'    End If
+'    For i = 1 To master_collection.count
+'        Set main_structure = master_collection(i)
+'        For Each thing In main_structure
+'            'if thing exists in each one (use the resolve method) then add it to the yes pile, otherwise add it to the no pile
+'
+'            'then remove the thing from all structures in master_collection
+'            For j = (i + 1) To master_collection.count
+'
+'            Next j
+'        Next thing
+'    Next i
+'
+'    'ip
+''    Select Case Homogeneous(homCol)
+''        Case "False"
+''            GoTo Intersection_clean_up
+''        Case "Dictionary", "Collection"
+''            'Proper format already
+''            'COPY EACH DataStructure
+''            For Each structure In homCol
+''                Set thing = Me.Copy(structure)
+''                master_collection.Add thing
+''            Next structure
+''
+''        Case Else
+''            For Each thing In homCol
+''                master_collection.Add Me.Copy(thing)
+''            Next thing
+''
+''    End Select
+'
+''Once all data structures are compiled, go through each one; sorting them into two separate piles
+''Pile 1 contains items that exist in ALL of the data structures; Pile 2 contains items that don't exist in all data structures
+''The main master_collection group should be un-stacked with each pass through in order to reduce the total iterations
+'
+'
+'Intersection_clean_up:
+'    If Err.number <> 0 Then
+'        Debug.Print "Error [" & Err.number & "]: " & Err.description
+'        Err.Clear
+'    End If
+'
+'    If IsObject(rtn) Then
+'        Set Intersection = rtn
+'      Else
+'        Intersection = rtn
+'    End If
+'    'Add to a collection of dictionaries so that the dictionaries can be paired down
+'End Function
+'               ^IN PROGRESS^
+'********************************************************
 
 Public Function Homogeneous(DataStructure As Variant, ParamArray others() As Variant) As Variant
 'Check if all elements of the provided arguments are same-typed
@@ -1240,13 +1388,19 @@ Dim rtn As Boolean
 Dim ref_var As Variant, i As Integer
 
 If Not IsArray(source_values) Then
-    For Each ref_var In variables
-        ref_var = source_values
-    Next ref_var
+    For i = 0 To UBound(variables)
+        On Error Resume Next
+        If IsObject(source_values) Then '6/22/22..ian Map single values
+            Set variables(i) = source_values
+          Else
+            variables(i) = source_values
+        End If
+        On Error GoTo map_clean_up
+    Next i
     rtn = True
   Else
-    If UBound(source_values) <> UBound(variables) Then Err.Raise 9
-    For i = 0 To UBound(source_values)
+'    If UBound(source_values) <> UBound(variables) Then Err.Raise 9 '6/22/22..ian Remove error trap - opt for taking the min ubound
+    For i = 0 To DS.Minimum(Array(UBound(source_values), UBound(variables)))  '6/22/22..ian Changed to min ubound instead of requiring equally sized arrays
         variables(i) = source_values(i)
     Next i
     rtn = True
@@ -1672,7 +1826,9 @@ Public Function Remove(DataStructure As Variant, Optional ByVal Index As Integer
     End If
 End Function
 
-Public Function Transpose(ParamArray DataStructures() As Variant) As Variant
+Public Function Transpose(arr As Variant) As Variant
+'6/22/22..ian Release
+
 ' m x n -> n x m
 'i.e.,
 ' ( (1, 2, 3, 4), _
@@ -1683,7 +1839,44 @@ Public Function Transpose(ParamArray DataStructures() As Variant) As Variant
     (3, 7), _
     (4, 8) ) [m=4, n=2]
     
+    Dim rtn As Variant, i As Long, j As Long
+    Dim i_col As Collection, j_col As Collection
+    Dim err_count As Long
+    Dim is2D As Boolean
     
+    On Error Resume Next
+    is2D = IsArray(arr) And IsArray(arr(0))
+    If Not is2D Or Err.number <> 0 Then
+        rtn = arr
+        Exit Function
+    End If
+    
+On Error GoTo Transpose_clean_up
+    Set j_col = New Collection
+    
+    For j = 0 To UBound(arr(0))
+        Set i_col = New Collection
+        
+        For i = 0 To UBound(arr)
+            i_col.Add arr(i)(j)
+        Next i
+        j_col.Add DS.Convert(i_col, "Variant()")
+    Next j
+    
+Transpose_clean_up:
+    If Err.number <> 0 Then
+        err_count = err_count + 1
+        Debug.Print "Error [" & Err.number & "]: " & Err.description
+        Err.Clear
+        If err_count > 500 Then
+            'Pass - don't resume
+            Exit Function
+          Else
+            Resume Next
+        End If
+    End If
+    
+    Transpose = DS.Convert(j_col, "Variant()")
 End Function
 
 Public Function Zip(ParamArray DataStructures() As Variant) As Variant
@@ -1765,6 +1958,20 @@ End Function
 
 
 'PRIVATE AUXILIARY METHODS
+
+Private Function apply_formats(expressions As Variant, ByVal placeholder As String, replacements As Variant) As Variant
+    Dim copied_things As Variant
+    Dim i As Long
+    Dim replacement As Variant
+    copied_things = DS.Copy(expressions)
+
+    For i = 0 To UBound(copied_things)
+        copied_things(i) = Replace(copied_things(i), placeholder, CStr(replacements(i)))
+    Next i
+
+    apply_formats = copied_things
+End Function
+
 Private Function DataStructureCount(ByRef DataStructure As Variant) As Integer
 On Error GoTo DataStructureCount_clean_up
     Dim i As Integer, val As Variant
@@ -2212,10 +2419,13 @@ On Error GoTo Resolve_clean_up
             End If
         Case "in", "is in"
             rtn = Exists(left_side, right_side)
+        Case "not in", "is not in" '6/22/22..ian Added missing "not in" operator
+            rtn = Not DS.Exists(left_side, right_side)
         Case "like"
-            rtn = (CStr(left_side) Like ("*" & CStr(right_side) & "*"))
+'            rtn = (CStr(left_side) Like ("*" & CStr(right_side) & "*"))
+            rtn = (CStr(left_side) Like (CStr(right_side)))
         Case "not like"
-            rtn = (Not (CStr(left_side) Like ("*" & CStr(right_side) & "*")))
+            rtn = (Not (CStr(left_side) Like (CStr(right_side))))
         Case "between"
             If Not IsArray(right_side) Then GoTo Resolve_clean_up
             If UBound(right_side) <> 1 Then GoTo Resolve_clean_up
@@ -2231,3 +2441,26 @@ Resolve_clean_up:
 Resolve = rtn
 End Function
 
+Private Function get_opposite_operator(ByVal operator As String, Optional ByVal unmatched_default As String = "") As String
+    get_opposite_operator = DS.Match(operator, "=", _
+                                                            "=", "<>", "<>", "=", _
+                                                            "like", "not like", "not like", "like", _
+                                                            ">", "<=", "<=", ">", ">=", "<", "<", ">=", _
+                                                            "is", "is not", "is not", "is", _
+                                                            "in", "not in", "not in", "in", _
+ _
+                                                            "=[and]", "<>[or]", "<>[or]", "=[and]", _
+                                                            "=[or]", "<>[and]", "<>[and]", "=[or]", _
+                                                            ">[and]", "<=[or]", "<=[or]", ">[and]", _
+                                                            ">=[and]", "<[or]", "<[or]", ">=[and]", _
+                                                            ">[or]", "<=[and]", "<=[and]", ">[or]", _
+                                                            ">=[or]", "<[and]", "<[and]", ">=[or]", _
+ _
+                                                            "like[and]", "not like[or]", "not like[or]", "like[and]", _
+                                                            "like[or]", "not like[and]", "not like[and]", "like[or]", _
+ _
+                                                            "is[and]", "is not[or]", "is not[or]", "is[and]", _
+                                                            "is not[and]", "is[or]", "is[or]", "is not[and]", _
+ _
+                                                            operator, unmatched_default)
+End Function
